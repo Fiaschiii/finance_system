@@ -1,4 +1,4 @@
-# 💰 Controle Financeiro Pessoal
+# Controle Financeiro Pessoal
 
 Sistema local de controle financeiro pessoal: cadastro de salário, gastos fixos e variáveis, orçamentos por categoria ("caixinhas") e histórico mensal.
 
