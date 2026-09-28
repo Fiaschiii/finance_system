@@ -55,7 +55,7 @@ Copie `backend/.env.example` para `backend/.env` e `frontend/.env.example` para 
 ## Progresso das etapas
 
 - [x] Etapa 1 — Estrutura do projeto
-- [ ] Etapa 2 — Configurar Supabase
+- [x] Etapa 2 — Configurar Supabase
 - [ ] Etapa 3 — Banco de dados e tabelas
 - [ ] Etapa 4 — Autenticação
 - [ ] Etapa 5 — Cadastro de salário
