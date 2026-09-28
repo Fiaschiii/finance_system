@@ -8,6 +8,8 @@
   --color-accent: #2e6b4b;
   --color-accent-dark: #234f38;
   --color-line: #dbe1d8;
+  --color-warning: #ad7a1e;
+  --color-danger: #a6412b;
 
   --radius: 8px;
   --font-sans: -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
