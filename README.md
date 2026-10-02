@@ -1,4 +1,4 @@
-# Controle Financeiro Pessoal
+# Controle Financeiro Pessoal #
 
 Sistema local de controle financeiro pessoal: cadastro de salário, gastos fixos e variáveis, orçamentos por categoria ("caixinhas") e histórico mensal.
 
@@ -56,7 +56,7 @@ Copie `backend/.env.example` para `backend/.env` e `frontend/.env.example` para 
 
 - [x] Etapa 1 — Estrutura do projeto
 - [x] Etapa 2 — Configurar Supabase
-- [ ] Etapa 3 — Banco de dados e tabelas
+- [x] Etapa 3 — Banco de dados e tabelas
 - [ ] Etapa 4 — Autenticação
 - [ ] Etapa 5 — Cadastro de salário
 - [ ] Etapa 6 — Cadastro de gastos
