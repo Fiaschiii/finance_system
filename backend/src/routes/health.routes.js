@@ -1,12 +1,12 @@
 import { Router } from 'express'
-import { isSupabaseConfigured } from '../config/supabase.js'
+import { isSupabaseConfigured, supabase } from '../config/supabase.js'
 
 const router = Router()
 
 router.get('/', (req, res) => {
   res.json({
     status: 'ok',
-    message: 'Backend do Controle Financeiro está no ar 🚀',
+    message: 'Backend do Controle Financeiro está no ar',
     timestamp: new Date().toISOString(),
   })
 })
@@ -20,18 +20,17 @@ router.get('/supabase', async (req, res) => {
   }
 
   try {
-    const response = await fetch(`${process.env.SUPABASE_URL}/rest/v1/`, {
-      headers: {
-        apikey: process.env.SUPABASE_PUBLISHABLE_KEY,
-        Authorization: `Bearer ${process.env.SUPABASE_PUBLISHABLE_KEY}`,
-      },
-    })
+    const { error } = await supabase.from('categories').select('id').limit(1)
 
-    res.json({
-      configured: true,
-      reachable: response.ok,
-      httpStatus: response.status,
-    })
+    if (error) {
+      return res.json({
+        configured: true,
+        reachable: false,
+        error: error.message,
+      })
+    }
+
+    res.json({ configured: true, reachable: true })
   } catch (error) {
     res.json({
       configured: true,
