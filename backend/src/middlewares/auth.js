@@ -16,8 +16,14 @@ export async function requireAuth(req, res, next) {
     return res.status(401).json({ error: 'Token de autenticação ausente' })
   }
 
+  let user
+  let supabase
+
   try {
-    const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+    // Um cliente por requisição, sem guardar sessão: no servidor o "login"
+    // é só o token que chegou nesta requisição.
+    supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+      auth: { persistSession: false, autoRefreshToken: false },
       global: { headers: { Authorization: `Bearer ${token}` } },
     })
 
@@ -27,10 +33,12 @@ export async function requireAuth(req, res, next) {
       return res.status(401).json({ error: 'Token inválido ou expirado' })
     }
 
-    req.user = data.user
-    req.supabase = supabase
-    next()
+    user = data.user
   } catch (err) {
-    res.status(500).json({ error: 'Falha ao validar autenticação' })
+    return res.status(500).json({ error: 'Falha ao validar autenticação' })
   }
+
+  req.user = user
+  req.supabase = supabase
+  next()
 }
