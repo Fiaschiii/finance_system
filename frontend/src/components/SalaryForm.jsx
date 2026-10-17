@@ -2,7 +2,9 @@ import { useState } from 'react'
 import { formatInputBRL, parseBRL } from '../utils/currency.js'
 
 function SalaryForm({ monthLabel, initialValue, onSave, onCancel }) {
-  const [text, setText] = useState(initialValue == null ? '' : formatInputBRL(initialValue))
+  // Salário 0 significa "ainda não informado" (é o que nasce quando o primeiro gasto do mês
+  // é lançado antes do salário): o campo abre vazio, senão quem digita 1200 forma "0,001200".
+  const [text, setText] = useState(initialValue ? formatInputBRL(initialValue) : '')
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
 
