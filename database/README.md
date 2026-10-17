@@ -1,4 +1,4 @@
-# Banco de dados (Supabase / PostgreSQL) # 
+# Banco de dados (Supabase / PostgreSQL)
 
 ## Como aplicar
 
@@ -43,6 +43,15 @@ erDiagram
 
 Rodei a migração inteira num Postgres local (simulando `auth.users` e `auth.uid()`) e validei: o gatilho semeia as 10 categorias em novos usuários, o RLS isola corretamente dois usuários diferentes, o fluxo salário → gasto soma certo, e as constraints (mês inválido, tipo inválido, valor negativo, mês/ano duplicado) bloqueiam como esperado. Não foi possível testar contra o seu projeto real — meu ambiente não alcança a internet — então a validação final é você rodar o script e conferir o Table Editor.
 
-## Próximos scripts
+## Scripts
 
-Novas mudanças de schema (ex: perfis, novos campos) devem virar `0002_*.sql`, `0003_*.sql` etc. — nunca edite `0001` depois que já tiver sido rodado em algum ambiente.
+| Script | Quando rodar |
+|---|---|
+| `migrations/0001_initial_schema.sql` | **Sempre, uma vez, primeiro.** Cria as tabelas, o RLS e os gatilhos |
+| `migrations/0002_backfill_default_categories.sql` | **Só se** o seletor de categorias do formulário de gastos vier vazio. Acontece com contas criadas *antes* do gatilho da Etapa 3 (ele só semeia as categorias de quem se cadastra depois). Cria as 10 categorias padrão apenas para quem não tem **nenhuma**; pode ser rodado mais de uma vez e não recria categorias que alguém apagou de propósito |
+
+Novas mudanças de schema devem virar `0003_*.sql`, `0004_*.sql` etc. — nunca edite um script depois que ele já tiver sido rodado em algum ambiente.
+
+## Lacuna conhecida (reforço na Etapa 12)
+
+O RLS impede ler, alterar ou apagar dados de outra pessoa, mas as chaves estrangeiras **ignoram o RLS** (o Postgres as confere por dentro, sem filtrar por dono). Na prática, quem acessar a API REST do Supabase diretamente, com o próprio login, consegue criar um gasto *seu* apontando para a categoria ou o mês de outra pessoa — desde que saiba o UUID, que ninguém consegue listar. Não vaza nenhum dado, e o backend deste projeto sempre confere o dono antes de gravar, mas o banco não impede sozinho. O reforço planejado é trocar essas chaves por chaves compostas `(id, user_id)`.
