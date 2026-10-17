@@ -34,3 +34,13 @@ export function parseBRL(text) {
   const number = Number(s)
   return Number.isFinite(number) ? number : NaN
 }
+
+// Soma em centavos para não acumular erro de ponto flutuante (0.1 + 0.2 !== 0.3).
+export function sumMoney(values) {
+  const cents = values.reduce((total, value) => total + Math.round(Number(value) * 100), 0)
+  return cents / 100
+}
+
+export function subtractMoney(a, b) {
+  return (Math.round(Number(a) * 100) - Math.round(Number(b) * 100)) / 100
+}

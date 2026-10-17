@@ -9,14 +9,18 @@ export function useFinance() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  const load = useCallback(async () => {
-    setLoading(true)
-    setError('')
+  // { silent: true } atualiza os dados sem piscar "Carregando…" na tela.
+  const load = useCallback(async ({ silent = false } = {}) => {
+    if (!silent) {
+      setLoading(true)
+      setError('')
+    }
     try {
       const data = await apiFetch('/api/finance/current')
       setMonth(data.month)
       setYear(data.year)
       setFinance(data.finance)
+      setError('')
     } catch (err) {
       setError(err.message)
     } finally {
