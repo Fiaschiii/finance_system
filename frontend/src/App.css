@@ -27,13 +27,13 @@
 
 .app-header__nav a {
   display: inline-block; /* <- efeito do mouse no link */
+  transition: color 180ms ease, border-color 180ms ease, transform 180ms ease;   /* <- efeito do mouse no link */
   text-decoration: none;
   color: var(--color-ink-muted);
   font-weight: 500;
   font-size: 0.95rem;
   padding-bottom: 4px;
   border-bottom: 2px solid transparent;
-  transition: color 180ms ease, boder-color 180ms ease, transform 180ms ease;   /* <- efeito do mouse no link */
 }
 
 .app-header__nav a:hover {
@@ -226,7 +226,6 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 4px;
-  max-width: 280px;
   margin-bottom: 16px;
   padding: 16px 18px;
   border: 1px solid var(--color-line);
@@ -340,4 +339,203 @@
 
 .button--ghost:hover {
   background: var(--color-bg);
+}
+
+/* ---------- Etapa 6: gastos ---------- */
+
+.page--wide {
+  max-width: none;
+}
+
+.dashboard-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.dashboard-cards .dashboard-card {
+  margin-bottom: 0;
+}
+
+.dashboard-card--negative .dashboard-card__value {
+  color: var(--color-danger);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 8px 0 14px;
+}
+
+.section-header h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.expense-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 16px;
+  margin-bottom: 20px;
+  padding: 16px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+}
+
+.expense-form label,
+.expense-form fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--color-ink);
+}
+
+.expense-form legend {
+  margin-bottom: 6px;
+  padding: 0;
+}
+
+.expense-form > label > input,
+.expense-form > label > select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--color-ink);
+}
+
+.expense-form > label > input:focus,
+.expense-form > label > select:focus {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+.expense-form .salary-input {
+  background: var(--color-surface);
+}
+
+.radio-options {
+  display: flex;
+  gap: 18px;
+  padding-top: 8px;
+}
+
+.expense-form .radio-option {
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  font-weight: 400;
+}
+
+.span-2 {
+  grid-column: 1 / -1;
+}
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+.expense-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.expense-table th {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--color-line);
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-align: left;
+  color: var(--color-ink-muted);
+}
+
+.expense-table td {
+  padding: 10px;
+  border-bottom: 1px solid var(--color-line);
+  vertical-align: top;
+}
+
+.expense-table .num {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.expense-note {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.85rem;
+  color: var(--color-ink-muted);
+}
+
+.type-tag {
+  display: inline-block;
+  padding: 1px 8px;
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  font-size: 0.8rem;
+  color: var(--color-ink-muted);
+}
+
+.type-tag--fixo {
+  border-color: var(--color-accent);
+  color: var(--color-accent-dark);
+}
+
+.row-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.row-actions .link-button {
+  margin-top: 0;
+}
+
+.link-button--danger {
+  color: var(--color-danger);
+}
+
+.empty-state {
+  padding: 16px 0;
+  color: var(--color-ink-muted);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (max-width: 560px) {
+  .expense-form {
+    grid-template-columns: 1fr;
+  }
 }

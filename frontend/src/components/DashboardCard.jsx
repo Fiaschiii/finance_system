@@ -1,7 +1,7 @@
-// Cartão de resumo reutilizável (Salário agora; Gastos, Saldo etc. na Etapa 9).
-function DashboardCard({ label, value, children }) {
+// Cartão de resumo reutilizável. `tone="negative"` destaca valores negativos.
+function DashboardCard({ label, value, tone, children }) {
   return (
-    <div className="dashboard-card">
+    <div className={`dashboard-card${tone ? ` dashboard-card--${tone}` : ''}`}>
       <span className="dashboard-card__label">{label}</span>
       <strong className="dashboard-card__value">{value}</strong>
       {children}
