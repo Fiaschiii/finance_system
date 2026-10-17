@@ -59,7 +59,7 @@ Copie `backend/.env.example` para `backend/.env` e `frontend/.env.example` para 
 - [x] Etapa 3 — Banco de dados e tabelas
 - [x] Etapa 4 — Autenticação
 - [x] Etapa 5 — Cadastro de salário
-- [ ] Etapa 6 — Cadastro de gastos
+- [x] Etapa 6 — Cadastro de gastos
 - [ ] Etapa 7 — Categorias
 - [ ] Etapa 8 — Caixinhas / orçamentos
 - [ ] Etapa 9 — Dashboard
