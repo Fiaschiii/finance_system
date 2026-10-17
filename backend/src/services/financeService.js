@@ -41,3 +41,21 @@ export async function updateSalary(supabase, userId, id, salary) {
   if (error) throw error
   return data // null se não existe (ou não é do usuário)
 }
+
+// Devolve o registro do mês; se ainda não existe, cria com salário 0.
+// É o que permite lançar um gasto antes de informar o salário do mês.
+// Seguro contra duas requisições simultâneas: se a outra criou primeiro
+// (violação de unicidade, 23505), apenas busca o registro dela.
+export async function getOrCreateFinance(supabase, userId, month, year) {
+  const existing = await getFinanceByMonth(supabase, userId, month, year)
+  if (existing) return existing
+
+  try {
+    return await createFinance(supabase, userId, { month, year, salary: 0 })
+  } catch (error) {
+    if (error?.code === '23505') {
+      return getFinanceByMonth(supabase, userId, month, year)
+    }
+    throw error
+  }
+}

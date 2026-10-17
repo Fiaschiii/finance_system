@@ -3,6 +3,8 @@ const MAX_YEAR = 2100
 const MAX_MONEY = 9999999999.99 // limite de numeric(12,2) no banco
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+const DATE_REGEX = /^(\d{4})-(\d{2})-(\d{2})$/
+const EXPENSE_TYPES = ['fixo', 'variavel'] // mesmos valores do check da tabela expenses
 
 // Erro de validação de entrada: o errorHandler transforma em HTTP 400.
 export class ValidationError extends Error {
@@ -37,7 +39,10 @@ export function parseYear(value) {
 
 // Valor em reais como número (1200.5) ou string com ponto decimal ("1200.50").
 // Arredonda para 2 casas, igual ao numeric(12,2) do banco.
-export function parseMoney(value, label = 'Valor') {
+// { allowZero: false } exige valor maior que zero (é o caso do valor de um gasto).
+export function parseMoney(value, label = 'Valor', { allowZero = true } = {}) {
+  const hint = allowZero ? 'maior ou igual a zero' : 'maior que zero'
+
   let number = NaN
   if (typeof value === 'number') {
     number = value
@@ -46,17 +51,76 @@ export function parseMoney(value, label = 'Valor') {
   }
 
   if (!Number.isFinite(number) || number < 0) {
-    throw new ValidationError(`${label} inválido: informe um número maior ou igual a zero.`)
+    throw new ValidationError(`${label} inválido: informe um número ${hint}.`)
   }
   if (number > MAX_MONEY) {
     throw new ValidationError(`${label} alto demais.`)
   }
-  return Math.round(number * 100) / 100
+
+  const rounded = Math.round(number * 100) / 100
+  if (!allowZero && rounded <= 0) {
+    throw new ValidationError(`${label} inválido: informe um número ${hint}.`)
+  }
+  return rounded
 }
 
-export function parseUuid(value) {
+export function parseUuid(value, message = 'Identificador inválido.') {
   if (typeof value !== 'string' || !UUID_REGEX.test(value)) {
-    throw new ValidationError('Identificador inválido.')
+    throw new ValidationError(message)
   }
   return value
+}
+
+// Texto livre (descrição, observação). Remove espaços das pontas.
+// Se não for obrigatório e vier vazio/ausente, devolve null.
+export function parseText(value, label, { max, required = true } = {}) {
+  if (value === undefined || value === null) {
+    if (required) throw new ValidationError(`${label} é obrigatório.`)
+    return null
+  }
+  if (typeof value !== 'string') {
+    throw new ValidationError(`${label} inválido.`)
+  }
+
+  const text = value.trim()
+  if (!text) {
+    if (required) throw new ValidationError(`${label} é obrigatório.`)
+    return null
+  }
+  if (text.length > max) {
+    throw new ValidationError(`${label} muito longo (máximo de ${max} caracteres).`)
+  }
+  return text
+}
+
+export function parseExpenseType(value) {
+  if (!EXPENSE_TYPES.includes(value)) {
+    throw new ValidationError('Tipo inválido: use "fixo" ou "variavel".')
+  }
+  return value
+}
+
+// Data no formato AAAA-MM-DD, existente no calendário (rejeita 2026-02-31).
+// Devolve também o mês e o ano, que definem a que mês o gasto pertence.
+export function parseDate(value, label = 'Data') {
+  const match = typeof value === 'string' ? DATE_REGEX.exec(value) : null
+  if (!match) {
+    throw new ValidationError(`${label} inválida: use o formato AAAA-MM-DD.`)
+  }
+
+  const year = Number(match[1])
+  const month = Number(match[2])
+  const day = Number(match[3])
+
+  const date = new Date(Date.UTC(year, month - 1, day))
+  const exists =
+    date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day
+  if (!exists) {
+    throw new ValidationError(`${label} inválida: esse dia não existe no calendário.`)
+  }
+  if (year < MIN_YEAR || year > MAX_YEAR) {
+    throw new ValidationError(`${label} inválida: use um ano entre ${MIN_YEAR} e ${MAX_YEAR}.`)
+  }
+
+  return { iso: value, month, year }
 }
