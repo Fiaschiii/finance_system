@@ -1,10 +1,24 @@
-// Acesso ao banco para a tabela categories. Somente leitura por enquanto:
-// criar, editar e excluir categorias chega na Etapa 7.
+// Acesso ao banco para a tabela categories.
+
+import { ValidationError } from '../utils/validators.js'
+
+const SELECT = 'id, name, description'
+
+// Traduz erros de constraint do Postgres pra mensagens que fazem sentido pro usuário.
+function mapError(error) {
+  if (error.code === '23505') {
+    return new ValidationError('Já existe uma categoria com esse nome.')
+  }
+  if (error.code === '23503') {
+    return new ValidationError('Não é possível excluir: existem gastos nessa categoria.')
+  }
+  return error
+}
 
 export async function listCategories(supabase, userId) {
   const { data, error } = await supabase
     .from('categories')
-    .select('id, name, description')
+    .select(SELECT)
     .eq('user_id', userId)
 
   if (error) throw error
@@ -25,4 +39,41 @@ export async function getCategoryById(supabase, userId, id) {
 
   if (error) throw error
   return data // null se não existe ou não é do usuário
+}
+
+export async function createCategory(supabase, userId, fields) {
+  const { data, error } = await supabase
+    .from('categories')
+    .insert({ ...fields, user_id: userId })
+    .select(SELECT)
+    .single()
+
+  if (error) throw mapError(error)
+  return data
+}
+
+export async function updateCategory(supabase, userId, id, fields) {
+  const { data, error } = await supabase
+    .from('categories')
+    .update(fields)
+    .eq('id', id)
+    .eq('user_id', userId)
+    .select(SELECT)
+    .maybeSingle()
+
+  if (error) throw mapError(error)
+  return data // null se não existe (ou não é do usuário)
+}
+
+export async function deleteCategory(supabase, userId, id) {
+  const { data, error } = await supabase
+    .from('categories')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', userId)
+    .select('id')
+    .maybeSingle()
+
+  if (error) throw mapError(error)
+  return data // null se não existia (ou não é do usuário)
 }

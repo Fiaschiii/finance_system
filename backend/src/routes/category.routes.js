@@ -7,5 +7,8 @@ const router = Router()
 router.use(requireAuth)
 
 router.get('/', categoryController.list)
+router.post('/', categoryController.create)
+router.put('/:id', categoryController.update)
+router.delete('/:id', categoryController.remove)
 
 export default router
