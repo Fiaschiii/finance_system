@@ -9,7 +9,9 @@ function mapError(error) {
   if (error.code === '23505') {
     return new ValidationError('Já existe uma categoria com esse nome.')
   }
-  if (error.code === '23503') {
+  // 23503 = foreign_key_violation; 23001 = restrict_violation (o PostgreSQL 18+
+  // usa esse código quando a chave estrangeira é "on delete restrict").
+  if (error.code === '23503' || error.code === '23001') {
     return new ValidationError('Não é possível excluir: existem gastos nessa categoria.')
   }
   return error
