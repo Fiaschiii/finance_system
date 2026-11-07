@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useToast } from '../hooks/useToast.jsx'
 import BudgetForm from './BudgetForm.jsx'
 import { formatBRL } from '../utils/currency.js'
 
@@ -10,10 +11,12 @@ function BudgetList({ budgets, onUpdate, onDelete }) {
   const [confirmingId, setConfirmingId] = useState(null)
   const [busyId, setBusyId] = useState(null)
   const [actionError, setActionError] = useState('')
+  const toast = useToast()
 
   async function handleUpdate(id, values) {
     await onUpdate(id, values)
     setEditingId(null)
+    toast('Caixinha atualizada.')
   }
 
   async function handleDelete(id) {
@@ -22,6 +25,7 @@ function BudgetList({ budgets, onUpdate, onDelete }) {
     try {
       await onDelete(id)
       setConfirmingId(null)
+      toast('Caixinha excluída.')
     } catch (err) {
       setActionError(err.message)
     } finally {

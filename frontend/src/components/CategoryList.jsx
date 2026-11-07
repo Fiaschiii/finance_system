@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useToast } from '../hooks/useToast.jsx'
 import CategoryForm from './CategoryForm.jsx'
 
 // Lista de categorias. Editar abre o formulário no lugar da linha;
@@ -8,10 +9,12 @@ function CategoryList({ categories, onUpdate, onDelete }) {
   const [confirmingId, setConfirmingId] = useState(null)
   const [busyId, setBusyId] = useState(null)
   const [actionError, setActionError] = useState('')
+  const toast = useToast()
 
   async function handleUpdate(id, values) {
     await onUpdate(id, values)
     setEditingId(null)
+    toast('Categoria atualizada.')
   }
 
   async function handleDelete(id) {
@@ -20,6 +23,7 @@ function CategoryList({ categories, onUpdate, onDelete }) {
     try {
       await onDelete(id)
       setConfirmingId(null)
+      toast('Categoria excluída.')
     } catch (err) {
       setActionError(err.message)
     } finally {

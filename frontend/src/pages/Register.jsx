@@ -2,8 +2,10 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { translateAuthError } from '../utils/authErrors.js'
+import { usePageTitle } from '../hooks/usePageTitle.js'
 
 function Register() {
+  usePageTitle('Criar conta')
   const { signUp } = useAuth()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')

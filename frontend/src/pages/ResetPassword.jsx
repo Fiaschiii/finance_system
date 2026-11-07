@@ -2,8 +2,10 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { translateAuthError } from '../utils/authErrors.js'
+import { usePageTitle } from '../hooks/usePageTitle.js'
 
 function ResetPassword() {
+  usePageTitle('Nova senha')
   const { updatePassword } = useAuth()
   const navigate = useNavigate()
   const [password, setPassword] = useState('')

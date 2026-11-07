@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { apiFetch } from '../services/api.js'
 
 // Gastos de um mês. Só carrega quando mês e ano já são conhecidos.
@@ -8,22 +8,27 @@ export function useExpenses(month, year) {
   const [expenses, setExpenses] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  // Só a resposta da última requisição vale (ver useFinance).
+  const latestRequest = useRef(0)
 
   const load = useCallback(
     async ({ silent = false } = {}) => {
       if (!month || !year) return
+      const requestId = ++latestRequest.current
       if (!silent) {
         setLoading(true)
         setError('')
       }
       try {
         const data = await apiFetch(`/api/expenses?month=${month}&year=${year}`)
+        if (requestId !== latestRequest.current) return
         setExpenses(data.expenses)
         setError('')
       } catch (err) {
+        if (requestId !== latestRequest.current) return
         setError(err.message)
       } finally {
-        setLoading(false)
+        if (requestId === latestRequest.current) setLoading(false)
       }
     },
     [month, year]

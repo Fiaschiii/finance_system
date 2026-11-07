@@ -33,3 +33,25 @@ export function formatDayMonth(iso) {
 export function formatShortMonthYear(month, year) {
   return `${MONTH_NAMES[month - 1].slice(0, 3)}/${String(year).slice(-2)}`
 }
+
+// Mês vizinho: (1, 2026, -1) -> { month: 12, year: 2025 }
+export function shiftMonth(month, year, delta) {
+  const index = year * 12 + (month - 1) + delta
+  return { month: (index % 12) + 1, year: Math.floor(index / 12) }
+}
+
+// Mês da URL (?mes=2026-10). Devolve null se faltar ou for inválido.
+// Os limites de ano são os mesmos do backend (2000–2100).
+export function parseMonthParam(value) {
+  const match = /^(\d{4})-(\d{2})$/.exec(value ?? '')
+  if (!match) return null
+  const year = Number(match[1])
+  const month = Number(match[2])
+  if (month < 1 || month > 12 || year < 2000 || year > 2100) return null
+  return { month, year }
+}
+
+// (10, 2026) -> "2026-10"
+export function toMonthParam(month, year) {
+  return `${year}-${pad(month)}`
+}

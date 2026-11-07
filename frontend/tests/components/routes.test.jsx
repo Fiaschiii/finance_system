@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import { ROUTER_FUTURE } from '../../src/routerFuture.js'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import { useAuth } from '../../src/hooks/useAuth.jsx'
 import RequireAuth from '../../src/components/RequireAuth.jsx'
@@ -9,7 +10,7 @@ vi.mock('../../src/hooks/useAuth.jsx', () => ({ useAuth: vi.fn() }))
 
 function renderAt(path) {
   render(
-    <MemoryRouter initialEntries={[path]}>
+    <MemoryRouter initialEntries={[path]} future={ROUTER_FUTURE}>
       <Routes>
         <Route path="/" element={<RequireAuth>Dashboard privado</RequireAuth>} />
         <Route path="/login" element={<PublicOnlyRoute>Tela de login</PublicOnlyRoute>} />

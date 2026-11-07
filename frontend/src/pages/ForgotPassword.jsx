@@ -2,8 +2,10 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { translateAuthError } from '../utils/authErrors.js'
+import { usePageTitle } from '../hooks/usePageTitle.js'
 
 function ForgotPassword() {
+  usePageTitle('Esqueci minha senha')
   const { resetPassword } = useAuth()
   const [email, setEmail] = useState('')
   const [error, setError] = useState('')
