@@ -49,6 +49,8 @@ const brlCompact = new Intl.NumberFormat('pt-BR', {
   style: 'currency',
   currency: 'BRL',
   notation: 'compact',
+  // Sem o mínimo 0, o Intl usa 1 casa fixa em moeda e mostra "R$ 5,0 mil".
+  minimumFractionDigits: 0,
   maximumFractionDigits: 1,
 })
 
