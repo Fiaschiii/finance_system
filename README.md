@@ -81,11 +81,33 @@ Por dentro: o Supabase marca a sessão como `aal1` (só senha) ou `aal2` (senha 
 **Perdeu o celular?** O Supabase não tem códigos de recuperação. Para remover o app de uma conta, vá ao painel: **Authentication → Users**, abra o usuário e apague o fator MFA. Depois disso, a conta volta a entrar só com a senha e pode cadastrar um novo app.
 
 
+## Segurança avançada (Etapa 16)
+
+- **CAPTCHA (Cloudflare Turnstile)** no login, no cadastro e no "esqueci minha senha". Quase sempre ele se resolve sozinho, sem clique: o navegador prova que não é um robô e o Supabase confere esse comprovante antes de aceitar a senha. Isso segura robôs que testam milhares de senhas. Fica desligado até você configurar (ver abaixo).
+- **Content-Security-Policy**: o build de produção (`npm run build`) traz uma lista do que a página pode carregar. Scripts só vêm do próprio site, do script de tema (pelo hash exato) e do Turnstile; conexões só vão para o Supabase e o backend; nada de iframes (exceto o do CAPTCHA), plugins ou formulários enviados para fora. Se alguém conseguir injetar um `<script>` (XSS), o navegador não o roda. A política é montada em [`frontend/csp.js`](frontend/csp.js). No `npm run dev` ela não é aplicada, porque o Vite precisa de scripts inline para recarregar a página.
+- **Sessão encerrada por inatividade**: depois de 15 minutos sem uso (`VITE_IDLE_TIMEOUT_MINUTES`), aparece "Você ainda está aí?" com uma contagem de 60 s. Sem resposta, o sistema sai deste navegador e a tela de login explica o motivo. Usar o sistema em outra aba conta como uso. Durante o aviso, só mexer o mouse não basta, é preciso clicar em "Continuar conectado". O logout por inatividade não derruba a sessão do celular.
+- **Avisos por e-mail** quando a senha, o e-mail ou o app autenticador mudam. São textos em português para colar no Supabase: veja [`docs/emails/`](docs/emails/README.md).
+- Campos de e-mail e senha com `autocomplete`, para o gerenciador de senhas preencher e sugerir senhas fortes no cadastro.
+
+### Configurar no painel (Etapa 16)
+
+1. **CAPTCHA:**
+   1. No [Cloudflare](https://dash.cloudflare.com/) (conta gratuita), vá em **Turnstile → Add widget** e coloque o domínio do sistema (e `localhost`, para desenvolver). Modo **Managed**.
+   2. Copie a **Site Key** para `VITE_TURNSTILE_SITE_KEY` no `frontend/.env`.
+   3. No Supabase, vá em **Authentication → Attack Protection → Enable Captcha protection**, escolha **Turnstile** e cole a **Secret Key**.
+   4. Ligue os dois juntos: só no Supabase, o login falha ("verificação anti-robô falhou"); só no `.env`, o widget aparece mas não protege nada.
+   5. Para testar sem conta no Cloudflare, use a site key `1x00000000000000000000AA` com a secret `1x0000000000000000000000000000000AA`. Ela sempre aprova e mostra a faixa "Somente para teste".
+2. **E-mails de segurança:** siga [`docs/emails/README.md`](docs/emails/README.md).
+3. **Authentication → Sign In / Providers → Email:** ligue **Secure password change**. Assim, trocar a senha exige ter entrado há pouco tempo.
+4. **Em produção, se a hospedagem permitir cabeçalhos:** mande a mesma política como cabeçalho `Content-Security-Policy` e acrescente `frame-ancestors 'none'` (impede o site de ser aberto dentro de um iframe alheio). Essa diretiva não funciona pela `<meta>`.
+
+## Testes
+
 Os testes rodam sem internet e **sem tocar no Supabase**: o login e o banco são simulados, então podem ser rodados quantas vezes quiser, sem criar nem apagar dados reais.
 
 ```bash
 cd backend && npm test     # 198 testes
-cd frontend && npm test    # 128 testes
+cd frontend && npm test    # 145 testes
 ```
 
 Use `npm run test:watch` para rodar de novo a cada arquivo salvo.
@@ -105,6 +127,7 @@ Use `npm run test:watch` para rodar de novo a cada arquivo salvo.
 - `services/api.test.js`: envio do token, mensagens de erro, resposta sem corpo e backend desligado.
 - `components/`: formulários de salário e de gasto (validação, valores enviados, edição), rotas protegidas (sem login vai para o login), tela de cadastro (senha mínima de 8 caracteres), cabeçalho com menu de celular, seletor de mês, avisos rápidos, tela de carregamento entre páginas e a troca de mês no Resumo (inclusive quando uma resposta antiga chega atrasada).
 - `utils/mfa.test.js` e `components/Mfa.test.jsx`: leitura do nível da sessão, a tela do código (certo, errado, sair) e ativar/cancelar/desativar em Configurações.
+- `config/csp.test.js`, `components/Captcha.test.jsx` e `components/IdleLogout.test.jsx`: o que a CSP libera e bloqueia, o CAPTCHA travando o botão até a verificação e renovando o comprovante a cada tentativa, e a contagem de inatividade (aviso, saída só deste navegador, uso em outra aba, mensagem no login).
 - `utils/month-and-theme.test.js`: cálculo do mês anterior/seguinte, mês na URL e escolha de tema.
 O que **não** é coberto aqui é o RLS do banco: ele foi testado à parte num PostgreSQL local (ver [`database/README.md`](database/README.md#testado-antes-da-entrega)) e pode ser conferido no Supabase com `database/checks/verificar_seguranca.sql`.
 
@@ -143,7 +166,7 @@ O que protege os dados:
 - [x] Etapa 13 — Testes
 - [x] Etapa 14 — UI/UX
 - [x] Etapa 15 — Verificação em duas etapas (MFA)
-- [ ] Etapa 16 — Segurança avançada
+- [x] Etapa 16 — Segurança avançada
 - [ ] Etapa 17 — Resistência a excesso de requisições
 
 As seções sobre configuração do Supabase, criação das tabelas, RLS e criação de usuário serão adicionadas aqui conforme cada etapa for concluída.
