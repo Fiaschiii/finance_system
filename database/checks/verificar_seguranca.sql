@@ -14,7 +14,8 @@ rls as (
 ),
 politicas as (
   select tablename as tabela,
-         count(*) as total,
+         count(*) filter (where permissive = 'PERMISSIVE') as total,
+         count(*) filter (where permissive = 'RESTRICTIVE' and policyname = tablename || ': mfa') as mfa,
          bool_and(roles = '{authenticated}') as so_logados
   from pg_policies
   where schemaname = 'public'
@@ -37,6 +38,17 @@ from (
   select '4 políticas, só para usuários logados, em ' || t.tabela,
          coalesce(p.total = 4 and p.so_logados, false), 2
   from tabelas t left join politicas p using (tabela)
+  union all
+  select 'Verificação em duas etapas exigida pelo banco em ' || t.tabela,
+         coalesce(p.mfa = 1, false), 6
+  from tabelas t left join politicas p using (tabela)
+  union all
+  select 'Função do MFA fora da API e sem acesso de visitantes',
+         coalesce((select p.prosecdef
+                          and p.proconfig @> array['search_path=""']
+                          and not has_function_privilege('anon', p.oid, 'execute')
+                   from pg_proc p
+                   where p.oid = to_regprocedure('private.mfa_satisfied()')), false), 6
   union all
   select 'Gasto só aponta para mês do mesmo dono',
          exists (select 1 from fks where conname = 'expenses_monthly_finance_same_owner_fkey'), 3

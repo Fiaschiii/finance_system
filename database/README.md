@@ -50,6 +50,7 @@ Rodei a migração inteira num Postgres local (simulando `auth.users` e `auth.ui
 | `migrations/0001_initial_schema.sql` | **Sempre, uma vez, primeiro.** Cria as tabelas, o RLS e os gatilhos |
 | `migrations/0002_backfill_default_categories.sql` | **Só se** o seletor de categorias do formulário de gastos vier vazio. Acontece com contas criadas *antes* do gatilho da Etapa 3 (ele só semeia as categorias de quem se cadastra depois). Cria as 10 categorias padrão apenas para quem não tem **nenhuma**; pode ser rodado mais de uma vez e não recria categorias que alguém apagou de propósito |
 | `migrations/0003_security_hardening.sql` | **Uma vez, depois da 0001** (Etapa 12). Reforça a segurança: chaves estrangeiras do mesmo dono, políticas só para logados, limites de texto e funções protegidas |
+| `migrations/0004_mfa_enforcement.sql` | **Uma vez, depois da 0003** (Etapa 15). Quem ativou o app autenticador só lê e grava os dados depois de digitar o código (sessão `aal2`) |
 | `checks/verificar_seguranca.sql` | **Quando quiser.** Só lê o banco e mostra ✅/❌ para cada item de segurança |
 
 Novas mudanças de schema devem virar `0004_*.sql`, `0005_*.sql` etc. — nunca edite um script depois que ele já tiver sido rodado em algum ambiente.
@@ -79,3 +80,21 @@ As migrações `0001` → `0002` → `0003` foram rodadas num PostgreSQL 18 loca
 - O `verificar_seguranca.sql` mostrou ❌ antes e ✅ em tudo depois.
 
 Rodar a `0003` uma segunda vez dá erro logo no primeiro comando (a constraint já existe), sem alterar nada. Isso é esperado.
+
+## Verificação em duas etapas (Etapa 15)
+
+A migração `0004_mfa_enforcement.sql` cria `private.mfa_satisfied()` e uma política **restritiva** (`<tabela>: mfa`) em cada uma das 4 tabelas. Uma política restritiva se soma às da `0003`: para ler ou gravar, a pessoa precisa ser a dona da linha **e**, se tiver um app autenticador confirmado, estar numa sessão `aal2` (que digitou o código).
+
+- A função fica no schema `private`, que a API do Supabase não expõe, e é `security definer` porque precisa ler `auth.mfa_factors`, que o papel `authenticated` não lê. Tem `search_path` vazio, como as outras, e visitantes (`anon`) não podem chamá-la.
+- Um app só lido no QR Code, mas nunca confirmado com um código, não conta: não tranca ninguém para fora.
+
+### Testado antes da entrega
+
+A `0004` foi aplicada depois de `0001` → `0003` num PostgreSQL 18 local, simulando `auth.uid()`, `auth.jwt()` e `auth.mfa_factors`:
+
+- **Usuário com app confirmado:** em `aal1` viu 0 categorias, teve o insert recusado pela política `monthly_finances: mfa`, e update e delete afetaram 0 linhas. Em `aal2`, leu as 10 categorias e gravou normalmente.
+- **Usuário com cadastro pela metade:** em `aal1` continuou vendo os próprios dados e nenhum dado de outra pessoa.
+- **Novo cadastro:** o gatilho continuou criando as 10 categorias.
+- **Permissões:** `anon` não consegue chamar a função, e `authenticated` não lê `auth.mfa_factors`.
+- **Verificação de segurança:** o `verificar_seguranca.sql` mostrou ❌ nos itens novos antes da `0004` e ✅ em tudo depois.
+
