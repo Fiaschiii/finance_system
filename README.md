@@ -63,7 +63,7 @@ Copie `backend/.env.example` para `backend/.env` e `frontend/.env.example` para 
 - [x] Etapa 7 — Categorias
 - [x] Etapa 8 — Caixinhas / orçamentos
 - [x] Etapa 9 — Dashboard
-- [ ] Etapa 10 — Histórico mensal
+- [x] Etapa 10 — Histórico mensal
 - [ ] Etapa 11 — Gráficos
 - [ ] Etapa 12 — Segurança e RLS
 - [ ] Etapa 13 — Testes
