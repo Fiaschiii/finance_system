@@ -61,7 +61,7 @@ function HistoryRow({ item, categories, onSaveSalary, onChanged }) {
             >
               <span aria-hidden="true">{expanded ? '▾' : '▸'}</span> {monthLabel}
             </button>
-            <Link className="history-month__link" to={`/?mes=${toMonthParam(item.month, item.year)}`}>
+            <Link className="action-button history-month__link" to={`/?mes=${toMonthParam(item.month, item.year)}`}>
               Ver resumo
             </Link>
           </div>
@@ -70,7 +70,7 @@ function HistoryRow({ item, categories, onSaveSalary, onChanged }) {
           <div className="history-salary">
             <span>{formatBRL(item.salary)}</span>
             {!editingSalary && (
-              <button type="button" className="link-button" onClick={() => setEditingSalary(true)}>
+              <button type="button" className="action-button" onClick={() => setEditingSalary(true)}>
                 Editar
               </button>
             )}

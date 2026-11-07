@@ -3,9 +3,11 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { translateAuthError } from '../utils/authErrors.js'
 import { usePageTitle } from '../hooks/usePageTitle.js'
+import { useRouteReady } from '../hooks/useRouteLoading.jsx'
 
 function ForgotPassword() {
   usePageTitle('Esqueci minha senha')
+  useRouteReady(true)
   const { resetPassword } = useAuth()
   const [email, setEmail] = useState('')
   const [error, setError] = useState('')

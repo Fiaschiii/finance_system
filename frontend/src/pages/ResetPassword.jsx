@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { translateAuthError } from '../utils/authErrors.js'
 import { usePageTitle } from '../hooks/usePageTitle.js'
+import { useRouteReady } from '../hooks/useRouteLoading.jsx'
 
 function ResetPassword() {
   usePageTitle('Nova senha')
+  useRouteReady(true)
   const { updatePassword } = useAuth()
   const navigate = useNavigate()
   const [password, setPassword] = useState('')

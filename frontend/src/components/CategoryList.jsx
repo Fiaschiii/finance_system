@@ -63,7 +63,7 @@ function CategoryList({ categories, onUpdate, onDelete }) {
                   <span>Excluir?</span>
                   <button
                     type="button"
-                    className="link-button link-button--danger"
+                    className="action-button action-button--danger-solid"
                     onClick={() => handleDelete(category.id)}
                     disabled={busyId === category.id}
                   >
@@ -71,7 +71,7 @@ function CategoryList({ categories, onUpdate, onDelete }) {
                   </button>
                   <button
                     type="button"
-                    className="link-button"
+                    className="action-button action-button--neutral"
                     onClick={() => setConfirmingId(null)}
                     disabled={busyId === category.id}
                   >
@@ -82,7 +82,7 @@ function CategoryList({ categories, onUpdate, onDelete }) {
                 <span className="row-actions">
                   <button
                     type="button"
-                    className="link-button"
+                    className="action-button"
                     aria-label={`Editar ${category.name}`}
                     onClick={() => {
                       setConfirmingId(null)
@@ -93,7 +93,7 @@ function CategoryList({ categories, onUpdate, onDelete }) {
                   </button>
                   <button
                     type="button"
-                    className="link-button link-button--danger"
+                    className="action-button action-button--danger"
                     aria-label={`Excluir ${category.name}`}
                     onClick={() => {
                       setEditingId(null)

@@ -9,24 +9,27 @@ import ForgotPassword from './pages/ForgotPassword.jsx'
 import ResetPassword from './pages/ResetPassword.jsx'
 import History from './pages/History.jsx'
 import Settings from './pages/Settings.jsx'
+import { RouteLoadingProvider } from './hooks/useRouteLoading.jsx'
 import './App.css'
 
 function App() {
   return (
-    <div className="app-shell">
-      <Header />
-      <main className="app-content">
-        <Routes>
-          <Route path="/login" element={<PublicOnlyRoute><Login /></PublicOnlyRoute>} />
-          <Route path="/register" element={<PublicOnlyRoute><Register /></PublicOnlyRoute>} />
-          <Route path="/forgot-password" element={<PublicOnlyRoute><ForgotPassword /></PublicOnlyRoute>} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/" element={<RequireAuth><Dashboard /></RequireAuth>} />
-          <Route path="/history" element={<RequireAuth><History /></RequireAuth>} />
-          <Route path="/settings" element={<RequireAuth><Settings /></RequireAuth>} />
-        </Routes>
-      </main>
-    </div>
+    <RouteLoadingProvider>
+      <div className="app-shell">
+        <Header />
+        <main className="app-content">
+          <Routes>
+            <Route path="/login" element={<PublicOnlyRoute><Login /></PublicOnlyRoute>} />
+            <Route path="/register" element={<PublicOnlyRoute><Register /></PublicOnlyRoute>} />
+            <Route path="/forgot-password" element={<PublicOnlyRoute><ForgotPassword /></PublicOnlyRoute>} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/" element={<RequireAuth><Dashboard /></RequireAuth>} />
+            <Route path="/history" element={<RequireAuth><History /></RequireAuth>} />
+            <Route path="/settings" element={<RequireAuth><Settings /></RequireAuth>} />
+          </Routes>
+        </main>
+      </div>
+    </RouteLoadingProvider>
   )
 }
 

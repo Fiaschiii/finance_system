@@ -6,6 +6,7 @@ import { useExpenses } from '../hooks/useExpenses.js'
 import { useBudgets } from '../hooks/useBudgets.js'
 import { useToast } from '../hooks/useToast.jsx'
 import { usePageTitle } from '../hooks/usePageTitle.js'
+import { useRouteReady } from '../hooks/useRouteLoading.jsx'
 import { formatBRL, sumMoney, subtractMoney } from '../utils/currency.js'
 import { formatMonthYear, monthRange, toISODate, parseMonthParam, toMonthParam } from '../utils/date.js'
 import DashboardCard from '../components/DashboardCard.jsx'
@@ -66,6 +67,7 @@ function MonthSummary({ month, year, current, onChangeMonth, categoriesState }) 
     !error &&
     (financeState.loading || categoriesState.loading || expensesState.loading || budgetsState.loading)
   const ready = !error && !loading
+  useRouteReady(!loading)
 
   const monthLabel = formatMonthYear(month, year)
   const dateRange = monthRange(month, year)
@@ -167,7 +169,7 @@ function MonthSummary({ month, year, current, onChangeMonth, categoriesState }) 
                 {!editingSalary && (
                   <button
                     type="button"
-                    className="link-button"
+                    className="action-button"
                     aria-label={salary === 0 ? undefined : 'Editar salário'}
                     onClick={() => setEditingSalary(true)}
                   >

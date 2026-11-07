@@ -5,7 +5,8 @@ function PublicOnlyRoute({ children }) {
   const { user, loading } = useAuth()
 
   if (loading) {
-    return <p className="status status--pending">Carregando…</p>
+    // A tela de carregamento (AppLoader) já está cobrindo a página.
+    return <span className="visually-hidden">Carregando…</span>
   }
 
   if (user) {
