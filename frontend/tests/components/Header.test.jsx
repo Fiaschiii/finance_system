@@ -8,8 +8,8 @@ import Header from '../../src/components/Header.jsx'
 
 vi.mock('../../src/hooks/useAuth.jsx', () => ({ useAuth: vi.fn() }))
 
-function renderHeader(user = { id: 'u1', email: 'ana@exemplo.com' }) {
-  useAuth.mockReturnValue({ user, signOut: vi.fn() })
+function renderHeader(user = { id: 'u1', email: 'ana@exemplo.com' }, mfaPending = false) {
+  useAuth.mockReturnValue({ user, mfaPending, signOut: vi.fn() })
   render(
     <MemoryRouter future={ROUTER_FUTURE}>
       <Header />
@@ -50,5 +50,12 @@ describe('Header', () => {
     renderHeader(null)
     expect(screen.getByRole('link', { name: 'Entrar' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Abrir menu' })).not.toBeInTheDocument()
+  })
+
+  it('falta o código do app: sem menu, só o botão Sair', () => {
+    renderHeader(undefined, true)
+    expect(screen.queryByRole('link', { name: 'Resumo' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Abrir menu' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Sair' })).toBeInTheDocument()
   })
 })

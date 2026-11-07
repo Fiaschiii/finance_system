@@ -7,6 +7,7 @@ import { THEMES, getTheme, setTheme } from '../utils/theme.js'
 import CategoryForm from '../components/CategoryForm.jsx'
 import CategoryList from '../components/CategoryList.jsx'
 import SupabaseStatus from '../components/SupabaseStatus.jsx'
+import MfaSettings from '../components/MfaSettings.jsx'
 import Icon from '../components/Icon.jsx'
 import { SkeletonRows, LoadingLabel } from '../components/Skeleton.jsx'
 
@@ -72,6 +73,10 @@ function Settings() {
             <CategoryList categories={categories} onUpdate={updateCategory} onDelete={deleteCategory} />
           </>
         )}
+      </div>
+
+      <div className="settings-section">
+        <MfaSettings />
       </div>
 
       <div className="settings-section">

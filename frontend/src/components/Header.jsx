@@ -9,7 +9,10 @@ function navClass({ isActive }) {
 
 // Cabeçalho. Em telas pequenas, os links ficam atrás do botão "Menu".
 function Header() {
-  const { user, signOut } = useAuth()
+  const { user, mfaPending, signOut } = useAuth()
+  // Enquanto falta o código do app, a pessoa ainda não entrou de verdade:
+  // nada de menu, só o botão de sair.
+  const signedIn = Boolean(user) && !mfaPending
   const navigate = useNavigate()
   const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
@@ -41,7 +44,7 @@ function Header() {
         Controle Financeiro
       </Link>
 
-      {user && (
+      {signedIn && (
         <button
           type="button"
           className="icon-button app-header__menu-button"
@@ -55,7 +58,7 @@ function Header() {
       )}
 
       <nav id="main-nav" className={`app-header__nav${menuOpen ? ' app-header__nav--open' : ''}`}>
-        {user ? (
+        {signedIn ? (
           <>
             <NavLink to="/" end className={navClass}>Resumo</NavLink>
             <NavLink to="/history" className={navClass}>Histórico</NavLink>
@@ -67,6 +70,10 @@ function Header() {
               </button>
             </span>
           </>
+        ) : user ? (
+          <button type="button" className="app-header__logout" onClick={handleLogout}>
+            Sair
+          </button>
         ) : (
           <NavLink to="/login" className={navClass}>Entrar</NavLink>
         )}

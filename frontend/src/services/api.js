@@ -33,6 +33,7 @@ export async function apiFetch(path, options = {}) {
     const base = body?.error || `Erro ${response.status}`
     const error = new Error(body?.detail ? `${base} (${body.detail})` : base)
     error.status = response.status
+    error.code = body?.code
     throw error
   }
 

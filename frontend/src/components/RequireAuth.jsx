@@ -2,7 +2,7 @@ import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth.jsx'
 
 function RequireAuth({ children }) {
-  const { user, loading } = useAuth()
+  const { user, loading, mfaPending } = useAuth()
   const location = useLocation()
 
   if (loading) {
@@ -12,6 +12,11 @@ function RequireAuth({ children }) {
 
   if (!user) {
     return <Navigate to="/login" state={{ from: location }} replace />
+  }
+
+  // Senha certa, mas falta o código do app autenticador.
+  if (mfaPending) {
+    return <Navigate to="/mfa" state={{ from: location }} replace />
   }
 
   return children
