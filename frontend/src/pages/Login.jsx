@@ -3,9 +3,11 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { translateAuthError } from '../utils/authErrors.js'
 import { usePageTitle } from '../hooks/usePageTitle.js'
+import { useRouteReady } from '../hooks/useRouteLoading.jsx'
 
 function Login() {
   usePageTitle('Entrar')
+  useRouteReady(true)
   const { signIn } = useAuth()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')

@@ -3,6 +3,7 @@ import { useCategories } from '../hooks/useCategories.js'
 import HistoryRow from '../components/HistoryRow.jsx'
 import MonthlyChart from '../components/MonthlyChart.jsx'
 import { usePageTitle } from '../hooks/usePageTitle.js'
+import { useRouteReady } from '../hooks/useRouteLoading.jsx'
 import { Skeleton, SkeletonRows, LoadingLabel } from '../components/Skeleton.jsx'
 
 function History() {
@@ -12,6 +13,7 @@ function History() {
 
   const combinedError = error || categoriesState.error
   const combinedLoading = !combinedError && (loading || categoriesState.loading)
+  useRouteReady(!combinedLoading)
 
   function reloadAll() {
     reload()

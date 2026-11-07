@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useCategories } from '../hooks/useCategories.js'
 import { useToast } from '../hooks/useToast.jsx'
 import { usePageTitle } from '../hooks/usePageTitle.js'
+import { useRouteReady } from '../hooks/useRouteLoading.jsx'
 import { THEMES, getTheme, setTheme } from '../utils/theme.js'
 import CategoryForm from '../components/CategoryForm.jsx'
 import CategoryList from '../components/CategoryList.jsx'
@@ -15,6 +16,7 @@ function Settings() {
   const { categories, loading, error, addCategory, updateCategory, deleteCategory, reload } =
     useCategories()
   const [addingCategory, setAddingCategory] = useState(false)
+  useRouteReady(!loading)
   const [theme, setThemeState] = useState(getTheme)
 
   async function handleAddCategory(values) {
