@@ -11,6 +11,7 @@ const ERROR_MESSAGES = {
 const ERROR_PATTERNS = [
   [/Password should be at least (\d+) characters/i, (n) => `A senha precisa ter pelo menos ${n} caracteres.`],
   [/you can only request this after (\d+) seconds/i, (n) => `Por segurança, aguarde ${n} segundos antes de tentar de novo.`],
+  [/captcha/i, () => 'A verificação anti-robô falhou ou expirou. Aguarde ela ficar verde e tente de novo.'],
   [/MFA enroll is disabled/i, () => 'O app autenticador está desligado no Supabase (Authentication > Multi-Factor). Ative a opção TOTP e tente de novo.'],
   [/rate limit exceeded/i, () => 'Muitas tentativas em pouco tempo. Aguarde alguns minutos e tente de novo.'],
 ]

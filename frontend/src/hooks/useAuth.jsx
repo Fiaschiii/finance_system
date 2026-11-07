@@ -30,12 +30,18 @@ export function AuthProvider({ children }) {
   // usá-las como dependência de useEffect sem disparar buscas à toa.
   const actions = useMemo(
     () => ({
-      signUp: (email, password) => supabase.auth.signUp({ email, password }),
-      signIn: (email, password) => supabase.auth.signInWithPassword({ email, password }),
-      signOut: () => supabase.auth.signOut(),
-      resetPassword: (email) =>
+      // captchaToken: comprovante do CAPTCHA (vazio quando ele está desligado).
+      signUp: (email, password, captchaToken) =>
+        supabase.auth.signUp({ email, password, options: withCaptcha(captchaToken) }),
+      signIn: (email, password, captchaToken) =>
+        supabase.auth.signInWithPassword({ email, password, options: withCaptcha(captchaToken) }),
+      // scope 'local': sai só deste navegador (usado no fim por inatividade,
+      // para não derrubar a sessão do celular junto). Sem nada: o padrão.
+      signOut: (options) => supabase.auth.signOut(options),
+      resetPassword: (email, captchaToken) =>
         supabase.auth.resetPasswordForEmail(email, {
           redirectTo: `${window.location.origin}/reset-password`,
+          ...withCaptcha(captchaToken),
         }),
       updatePassword: (newPassword) => supabase.auth.updateUser({ password: newPassword }),
 
@@ -73,6 +79,10 @@ export function AuthProvider({ children }) {
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+}
+
+function withCaptcha(captchaToken) {
+  return captchaToken ? { captchaToken } : {}
 }
 
 export function useAuth() {

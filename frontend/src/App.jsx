@@ -1,5 +1,6 @@
 import { Routes, Route } from 'react-router-dom'
 import Header from './components/Header.jsx'
+import IdleLogout from './components/IdleLogout.jsx'
 import RequireAuth from './components/RequireAuth.jsx'
 import PublicOnlyRoute from './components/PublicOnlyRoute.jsx'
 import Dashboard from './pages/Dashboard.jsx'
@@ -18,6 +19,7 @@ function App() {
     <RouteLoadingProvider>
       <div className="app-shell">
         <Header />
+        <IdleLogout />
         <main className="app-content">
           <Routes>
             <Route path="/login" element={<PublicOnlyRoute><Login /></PublicOnlyRoute>} />

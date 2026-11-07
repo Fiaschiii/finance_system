@@ -33,7 +33,7 @@ function ResetPassword() {
       <form onSubmit={handleSubmit} className="auth-form">
         <label>
           Nova senha
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} />
+          <input type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} />
         </label>
         {error && <p className="status status--error">{error}</p>}
         <button type="submit" disabled={loading}>

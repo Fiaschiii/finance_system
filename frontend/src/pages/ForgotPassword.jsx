@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth.jsx'
 import { translateAuthError } from '../utils/authErrors.js'
 import { usePageTitle } from '../hooks/usePageTitle.js'
 import { useRouteReady } from '../hooks/useRouteLoading.jsx'
+import { useCaptcha } from '../hooks/useCaptcha.jsx'
 
 function ForgotPassword() {
   usePageTitle('Esqueci minha senha')
@@ -13,13 +14,15 @@ function ForgotPassword() {
   const [error, setError] = useState('')
   const [sent, setSent] = useState(false)
   const [loading, setLoading] = useState(false)
+  const captcha = useCaptcha()
 
   async function handleSubmit(e) {
     e.preventDefault()
     setError('')
     setLoading(true)
-    const { error } = await resetPassword(email)
+    const { error } = await resetPassword(email, captcha.token)
     setLoading(false)
+    captcha.reset()
     if (error) {
       setError(translateAuthError(error.message))
       return
@@ -43,10 +46,11 @@ function ForgotPassword() {
       <form onSubmit={handleSubmit} className="auth-form">
         <label>
           E-mail
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          <input type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
         </label>
+        {captcha.widget}
         {error && <p className="status status--error">{error}</p>}
-        <button type="submit" disabled={loading}>
+        <button type="submit" disabled={loading || !captcha.ready}>
           {loading ? 'Enviando…' : 'Enviar link de recuperação'}
         </button>
       </form>

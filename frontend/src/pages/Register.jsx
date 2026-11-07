@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth.jsx'
 import { translateAuthError } from '../utils/authErrors.js'
 import { usePageTitle } from '../hooks/usePageTitle.js'
 import { useRouteReady } from '../hooks/useRouteLoading.jsx'
+import { useCaptcha } from '../hooks/useCaptcha.jsx'
 
 function Register() {
   usePageTitle('Criar conta')
@@ -15,14 +16,16 @@ function Register() {
   const [error, setError] = useState('')
   const [info, setInfo] = useState('')
   const [loading, setLoading] = useState(false)
+  const captcha = useCaptcha()
 
   async function handleSubmit(e) {
     e.preventDefault()
     setError('')
     setInfo('')
     setLoading(true)
-    const { data, error } = await signUp(email, password)
+    const { data, error } = await signUp(email, password, captcha.token)
     setLoading(false)
+    captcha.reset()
 
     if (error) {
       setError(translateAuthError(error.message))
@@ -43,15 +46,16 @@ function Register() {
       <form onSubmit={handleSubmit} className="auth-form">
         <label>
           E-mail
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          <input type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
         </label>
         <label>
           Senha
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} />
+          <input type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} />
         </label>
+        {captcha.widget}
         {error && <p className="status status--error">{error}</p>}
         {info && <p className="status status--ok">{info}</p>}
-        <button type="submit" disabled={loading}>
+        <button type="submit" disabled={loading || !captcha.ready}>
           {loading ? 'Criando…' : 'Criar conta'}
         </button>
       </form>

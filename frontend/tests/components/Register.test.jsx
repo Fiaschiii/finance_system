@@ -35,7 +35,7 @@ describe('Cadastro', () => {
   it('com confirmação de e-mail ligada, pede para conferir a caixa de entrada', async () => {
     const signUp = vi.fn().mockResolvedValue({ data: { session: null }, error: null })
     await fillAndSubmit(signUp)
-    expect(signUp).toHaveBeenCalledWith('ana@exemplo.com', 'senhaforte')
+    expect(signUp).toHaveBeenCalledWith('ana@exemplo.com', 'senhaforte', '')
     expect(await screen.findByText(/Confira seu e-mail/)).toBeInTheDocument()
   })
 
