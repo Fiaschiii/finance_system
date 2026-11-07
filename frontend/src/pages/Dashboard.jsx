@@ -47,6 +47,16 @@ function Dashboard() {
     (category) => !budgetsState.budgets.some((budget) => budget.category_id === category.id)
   )
 
+  const fixedTotal = sumMoney(
+    expensesState.expenses.filter((expense) => expense.type === 'fixo').map((expense) => expense.amount)
+  )
+  const variableTotal = sumMoney(
+    expensesState.expenses.filter((expense) => expense.type === 'variavel').map((expense) => expense.amount)
+  )
+  const spentPercent =
+    finance && finance.salary > 0 ? Math.round((totalSpent / finance.salary) * 100) : null
+  const overBudgetCategories = budgetsState.budgets.filter((budget) => budget.spent > budget.limit_amount)
+
   function reloadAll() {
     financeState.reload()
     categoriesState.reload()
@@ -126,7 +136,22 @@ function Dashboard() {
                 value={formatBRL(balance)}
                 tone={balance < 0 ? 'negative' : undefined}
               />
+              <DashboardCard label="Gastos fixos" value={formatBRL(fixedTotal)} />
+              <DashboardCard label="Gastos variáveis" value={formatBRL(variableTotal)} />
+              {spentPercent !== null && (
+                <DashboardCard
+                  label="% do salário gasto"
+                  value={`${spentPercent}%`}
+                  tone={spentPercent > 100 ? 'negative' : undefined}
+                />
+              )}
             </div>
+          )}
+
+          {overBudgetCategories.length > 0 && (
+            <p className="status status--error">
+              Caixinha estourada: {overBudgetCategories.map((budget) => budget.category.name).join(', ')}.
+            </p>
           )}
 
           <div className="section-header">
