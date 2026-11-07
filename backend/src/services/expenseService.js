@@ -53,6 +53,24 @@ export async function updateExpense(supabase, userId, id, values) {
   return data // null se não existe (ou não é do usuário)
 }
 
+// Soma dos gastos por categoria num intervalo de datas (para as caixinhas).
+export async function sumByCategory(supabase, userId, dateRange) {
+  const { data, error } = await supabase
+    .from('expenses')
+    .select('category_id, amount')
+    .eq('user_id', userId)
+    .gte('expense_date', dateRange.min)
+    .lte('expense_date', dateRange.max)
+
+  if (error) throw error
+
+  const totals = {}
+  for (const { category_id, amount } of data) {
+    totals[category_id] = (totals[category_id] ?? 0) + Number(amount)
+  }
+  return totals
+}
+
 export async function deleteExpense(supabase, userId, id) {
   const { data, error } = await supabase
     .from('expenses')
