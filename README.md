@@ -58,6 +58,8 @@ Copie `backend/.env.example` para `backend/.env` e `frontend/.env.example` para 
 - **Histórico**: gráfico de salário × gastos e a lista de todos os meses. Clique no mês para ver e editar os gastos ali mesmo, ou em "Ver resumo" para abri-lo no Resumo.
 - **Configurações**: categorias, **aparência** (automático, claro ou escuro; o automático segue o sistema operacional) e o teste de **conexão** com o servidor e o banco.
 - Cada ação (salvar, editar, excluir) mostra um aviso rápido no canto da tela.
+- Ao trocar de página, uma tela de carregamento com o ícone do sistema cobre o conteúdo até os dados chegarem (no mínimo ~0,5 s, para não piscar). Trocar só o mês no Resumo não a mostra.
+- Botões e links reagem ao mouse: levantam, ganham sombra ou um fundo suave, e "afundam" no clique.
 - Funciona no celular: o menu vira um botão ☰ e as tabelas viram listas, sem rolagem para o lado.
 
 ## Testes
@@ -66,7 +68,7 @@ Os testes rodam sem internet e **sem tocar no Supabase**: o login e o banco são
 
 ```bash
 cd backend && npm test     # 185 testes
-cd frontend && npm test    # 99 testes
+cd frontend && npm test    # 105 testes
 ```
 
 Use `npm run test:watch` para rodar de novo a cada arquivo salvo.
@@ -83,7 +85,7 @@ Use `npm run test:watch` para rodar de novo a cada arquivo salvo.
 
 - `utils/`: leitura de valores digitados no formato brasileiro (`1.200,50`, `R$ 1.200`), formatação de moeda, somas em centavos, datas sem erro de fuso e tradução das mensagens do Supabase.
 - `services/api.test.js`: envio do token, mensagens de erro, resposta sem corpo e backend desligado.
-- `components/`: formulários de salário e de gasto (validação, valores enviados, edição), rotas protegidas (sem login vai para o login), tela de cadastro (senha mínima de 8 caracteres), cabeçalho com menu de celular, seletor de mês, avisos rápidos e a troca de mês no Resumo (inclusive quando uma resposta antiga chega atrasada).
+- `components/`: formulários de salário e de gasto (validação, valores enviados, edição), rotas protegidas (sem login vai para o login), tela de cadastro (senha mínima de 8 caracteres), cabeçalho com menu de celular, seletor de mês, avisos rápidos, tela de carregamento entre páginas e a troca de mês no Resumo (inclusive quando uma resposta antiga chega atrasada).
 - `utils/month-and-theme.test.js`: cálculo do mês anterior/seguinte, mês na URL e escolha de tema.
 O que **não** é coberto aqui é o RLS do banco: ele foi testado à parte num PostgreSQL local (ver [`database/README.md`](database/README.md#testado-antes-da-entrega)) e pode ser conferido no Supabase com `database/checks/verificar_seguranca.sql`.
 
