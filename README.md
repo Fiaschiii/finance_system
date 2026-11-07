@@ -80,8 +80,8 @@ O que protege os dados:
 - [x] Etapa 8 — Caixinhas / orçamentos
 - [x] Etapa 9 — Dashboard
 - [x] Etapa 10 — Histórico mensal
-- [ ] Etapa 11 — Gráficos
-- [ ] Etapa 12 — Segurança e RLS
+- [x] Etapa 11 — Gráficos
+- [x] Etapa 12 — Segurança e RLS
 - [ ] Etapa 13 — Testes
 - [ ] Etapa 14 — UI/UX
 
