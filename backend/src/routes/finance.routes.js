@@ -7,6 +7,7 @@ const router = Router()
 // Tudo aqui exige usuário autenticado.
 router.use(requireAuth)
 
+router.get('/', financeController.listAll)
 router.get('/current', financeController.getCurrent)
 router.get('/:year/:month', financeController.getByMonth)
 router.post('/', financeController.create)

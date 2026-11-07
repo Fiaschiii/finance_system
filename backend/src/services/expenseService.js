@@ -53,6 +53,22 @@ export async function updateExpense(supabase, userId, id, values) {
   return data // null se não existe (ou não é do usuário)
 }
 
+// Soma dos gastos por mês (monthly_finance_id), para o Histórico.
+export async function sumByMonthlyFinance(supabase, userId) {
+  const { data, error } = await supabase
+    .from('expenses')
+    .select('monthly_finance_id, amount')
+    .eq('user_id', userId)
+
+  if (error) throw error
+
+  const totals = {}
+  for (const { monthly_finance_id, amount } of data) {
+    totals[monthly_finance_id] = (totals[monthly_finance_id] ?? 0) + Number(amount)
+  }
+  return totals
+}
+
 // Soma dos gastos por categoria num intervalo de datas (para as caixinhas).
 export async function sumByCategory(supabase, userId, dateRange) {
   const { data, error } = await supabase

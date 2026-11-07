@@ -4,6 +4,19 @@
 // um só enxerga e altera as próprias linhas. O filtro explícito por user_id
 // é uma segunda camada de proteção.
 
+// Todos os meses já cadastrados, mais recente primeiro (para o Histórico).
+export async function listAllFinances(supabase, userId) {
+  const { data, error } = await supabase
+    .from('monthly_finances')
+    .select('id, month, year, salary')
+    .eq('user_id', userId)
+    .order('year', { ascending: false })
+    .order('month', { ascending: false })
+
+  if (error) throw error
+  return data
+}
+
 export async function getFinanceByMonth(supabase, userId, month, year) {
   const { data, error } = await supabase
     .from('monthly_finances')
