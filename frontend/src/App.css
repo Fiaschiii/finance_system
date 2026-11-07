@@ -482,6 +482,37 @@
   font-variant-numeric: tabular-nums;
 }
 
+.expense-table .num--negative {
+  color: var(--color-danger);
+  font-weight: 600;
+}
+
+.history-month-toggle {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  color: var(--color-ink);
+  cursor: pointer;
+}
+
+.history-month-toggle:hover {
+  color: var(--color-accent-dark);
+}
+
+.history-salary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.history-salary .link-button {
+  margin-top: 0;
+  font-size: 0.8rem;
+}
+
 .expense-note {
   display: block;
   margin-top: 2px;
