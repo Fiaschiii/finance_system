@@ -3,12 +3,15 @@ import { useAuth } from '../hooks/useAuth.jsx'
 import { useFinance } from '../hooks/useFinance.js'
 import { useCategories } from '../hooks/useCategories.js'
 import { useExpenses } from '../hooks/useExpenses.js'
+import { useBudgets } from '../hooks/useBudgets.js'
 import { formatBRL, sumMoney, subtractMoney } from '../utils/currency.js'
 import { formatMonthYear, monthRange, toISODate } from '../utils/date.js'
 import DashboardCard from '../components/DashboardCard.jsx'
 import SalaryForm from '../components/SalaryForm.jsx'
 import ExpenseForm from '../components/ExpenseForm.jsx'
 import ExpenseList from '../components/ExpenseList.jsx'
+import BudgetForm from '../components/BudgetForm.jsx'
+import BudgetList from '../components/BudgetList.jsx'
 import SupabaseStatus from '../components/SupabaseStatus.jsx'
 
 function Dashboard() {
@@ -17,13 +20,17 @@ function Dashboard() {
   const { month, year, finance } = financeState
   const categoriesState = useCategories()
   const expensesState = useExpenses(month, year)
+  const budgetsState = useBudgets(month, year)
 
   const [editingSalary, setEditingSalary] = useState(false)
   const [addingExpense, setAddingExpense] = useState(false)
+  const [addingBudget, setAddingBudget] = useState(false)
 
-  const error = financeState.error || categoriesState.error || expensesState.error
+  const error =
+    financeState.error || categoriesState.error || expensesState.error || budgetsState.error
   const loading =
-    !error && (financeState.loading || categoriesState.loading || expensesState.loading)
+    !error &&
+    (financeState.loading || categoriesState.loading || expensesState.loading || budgetsState.loading)
   const ready = !error && !loading
 
   const monthLabel = month && year ? formatMonthYear(month, year) : ''
@@ -36,11 +43,15 @@ function Dashboard() {
   const totalSpent = sumMoney(expensesState.expenses.map((expense) => expense.amount))
   const balance = subtractMoney(finance?.salary ?? 0, totalSpent)
   const hasCategories = categoriesState.categories.length > 0
+  const categoriesWithoutBudget = categoriesState.categories.filter(
+    (category) => !budgetsState.budgets.some((budget) => budget.category_id === category.id)
+  )
 
   function reloadAll() {
     financeState.reload()
     categoriesState.reload()
     expensesState.reload()
+    budgetsState.reload()
   }
 
   async function handleSaveSalary(salary) {
@@ -56,6 +67,11 @@ function Dashboard() {
       await financeState.reload({ silent: true })
     }
     setAddingExpense(false)
+  }
+
+  async function handleAddBudget(values) {
+    await budgetsState.addBudget(values)
+    setAddingBudget(false)
   }
 
   return (
@@ -112,6 +128,29 @@ function Dashboard() {
               />
             </div>
           )}
+
+          <div className="section-header">
+            <h3>Caixinhas do mês</h3>
+            {hasCategories && categoriesWithoutBudget.length > 0 && !addingBudget && (
+              <button type="button" className="button" onClick={() => setAddingBudget(true)}>
+                + Nova caixinha
+              </button>
+            )}
+          </div>
+
+          {addingBudget && (
+            <BudgetForm
+              categories={categoriesWithoutBudget}
+              onSave={handleAddBudget}
+              onCancel={() => setAddingBudget(false)}
+            />
+          )}
+
+          <BudgetList
+            budgets={budgetsState.budgets}
+            onUpdate={budgetsState.updateBudget}
+            onDelete={budgetsState.deleteBudget}
+          />
 
           <div className="section-header">
             <h3>Gastos do mês</h3>
