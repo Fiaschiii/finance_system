@@ -46,11 +46,19 @@ cd frontend
 npm run dev
 ```
 
-Abra http://localhost:5173 — o menu (Dashboard / Histórico / Configurações / Login) já navega entre as páginas (ainda como placeholders).
+Abra http://localhost:5173, crie sua conta e entre. O menu leva às páginas **Resumo**, **Histórico** e **Configurações**.
 
 ## Variáveis de ambiente
 
 Copie `backend/.env.example` para `backend/.env` e `frontend/.env.example` para `frontend/.env`. Os valores do Supabase serão preenchidos na Etapa 2.
+
+## Usando o sistema
+
+- **Resumo**: o mês atual, com salário, gastos, saldo e % do salário gasto. As setas ‹ › trocam o mês, e o mês escolhido fica no endereço (`/?mes=2026-10`): dá para recarregar a página ou salvar nos favoritos sem perder o mês. Os gastos ficam logo abaixo dos cartões; o gráfico por categoria e as caixinhas, lado a lado.
+- **Histórico**: gráfico de salário × gastos e a lista de todos os meses. Clique no mês para ver e editar os gastos ali mesmo, ou em "Ver resumo" para abri-lo no Resumo.
+- **Configurações**: categorias, **aparência** (automático, claro ou escuro; o automático segue o sistema operacional) e o teste de **conexão** com o servidor e o banco.
+- Cada ação (salvar, editar, excluir) mostra um aviso rápido no canto da tela.
+- Funciona no celular: o menu vira um botão ☰ e as tabelas viram listas, sem rolagem para o lado.
 
 ## Testes
 
@@ -58,7 +66,7 @@ Os testes rodam sem internet e **sem tocar no Supabase**: o login e o banco são
 
 ```bash
 cd backend && npm test     # 185 testes
-cd frontend && npm test    # 68 testes
+cd frontend && npm test    # 99 testes
 ```
 
 Use `npm run test:watch` para rodar de novo a cada arquivo salvo.
@@ -75,7 +83,8 @@ Use `npm run test:watch` para rodar de novo a cada arquivo salvo.
 
 - `utils/`: leitura de valores digitados no formato brasileiro (`1.200,50`, `R$ 1.200`), formatação de moeda, somas em centavos, datas sem erro de fuso e tradução das mensagens do Supabase.
 - `services/api.test.js`: envio do token, mensagens de erro, resposta sem corpo e backend desligado.
-- `components/`: formulários de salário e de gasto (validação, valores enviados, edição), rotas protegidas (sem login vai para o login) e tela de cadastro (senha mínima de 8 caracteres).
+- `components/`: formulários de salário e de gasto (validação, valores enviados, edição), rotas protegidas (sem login vai para o login), tela de cadastro (senha mínima de 8 caracteres), cabeçalho com menu de celular, seletor de mês, avisos rápidos e a troca de mês no Resumo (inclusive quando uma resposta antiga chega atrasada).
+- `utils/month-and-theme.test.js`: cálculo do mês anterior/seguinte, mês na URL e escolha de tema.
 O que **não** é coberto aqui é o RLS do banco: ele foi testado à parte num PostgreSQL local (ver [`database/README.md`](database/README.md#testado-antes-da-entrega)) e pode ser conferido no Supabase com `database/checks/verificar_seguranca.sql`.
 
 ## Segurança
@@ -109,6 +118,6 @@ O que protege os dados:
 - [x] Etapa 11 — Gráficos
 - [x] Etapa 12 — Segurança e RLS
 - [x] Etapa 13 — Testes
-- [ ] Etapa 14 — UI/UX
+- [x] Etapa 14 — UI/UX
 
 As seções sobre configuração do Supabase, criação das tabelas, RLS e criação de usuário serão adicionadas aqui conforme cada etapa for concluída.
