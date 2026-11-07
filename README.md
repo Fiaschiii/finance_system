@@ -52,6 +52,32 @@ Abra http://localhost:5173 — o menu (Dashboard / Histórico / Configurações 
 
 Copie `backend/.env.example` para `backend/.env` e `frontend/.env.example` para `frontend/.env`. Os valores do Supabase serão preenchidos na Etapa 2.
 
+## Testes
+
+Os testes rodam sem internet e **sem tocar no Supabase**: o login e o banco são simulados, então podem ser rodados quantas vezes quiser, sem criar nem apagar dados reais.
+
+```bash
+cd backend && npm test     # 185 testes
+cd frontend && npm test    # 68 testes
+```
+
+Use `npm run test:watch` para rodar de novo a cada arquivo salvo.
+
+**Backend** (Vitest + Supertest), em `backend/tests/`:
+
+- `unit/validators.test.js` e `unit/date.test.js`: cada regra de validação (mês, ano, dinheiro, UUID, textos, tipo, datas inexistentes como 31/02) e o cálculo do último dia do mês.
+- `unit/services.test.js`: **toda consulta filtra por `user_id`** e todo insert grava o dono do login, nunca o enviado; tradução dos erros do Postgres (nome repetido, categoria com gastos); somas por mês e por categoria; criação do mês sem duplicar quando chegam duas requisições juntas.
+- `api/auth-and-security.test.js`: todas as rotas exigem login (sem token, token inválido, Supabase fora do ar); o backend usa a chave publishable com o token do usuário; `helmet`, CORS, JSON malformado, corpo acima de 10 kB e erro 500 sem detalhe em produção.
+- `api/rate-limit.test.js`: a requisição seguinte ao limite recebe 429.
+- `api/finance.test.js`, `api/expenses.test.js`, `api/categories-and-budgets.test.js`: cada rota, com os casos de sucesso, de validação (400), de "não encontrado / de outra pessoa" (404), de categoria de outro usuário e de campos enviados pelo cliente que devem ser ignorados (`user_id`, `monthly_finance_id`).
+
+**Frontend** (Vitest + Testing Library + jsdom), em `frontend/tests/`:
+
+- `utils/`: leitura de valores digitados no formato brasileiro (`1.200,50`, `R$ 1.200`), formatação de moeda, somas em centavos, datas sem erro de fuso e tradução das mensagens do Supabase.
+- `services/api.test.js`: envio do token, mensagens de erro, resposta sem corpo e backend desligado.
+- `components/`: formulários de salário e de gasto (validação, valores enviados, edição), rotas protegidas (sem login vai para o login) e tela de cadastro (senha mínima de 8 caracteres).
+O que **não** é coberto aqui é o RLS do banco: ele foi testado à parte num PostgreSQL local (ver [`database/README.md`](database/README.md#testado-antes-da-entrega)) e pode ser conferido no Supabase com `database/checks/verificar_seguranca.sql`.
+
 ## Segurança
 
 O que protege os dados:
@@ -82,7 +108,7 @@ O que protege os dados:
 - [x] Etapa 10 — Histórico mensal
 - [x] Etapa 11 — Gráficos
 - [x] Etapa 12 — Segurança e RLS
-- [ ] Etapa 13 — Testes
+- [x] Etapa 13 — Testes
 - [ ] Etapa 14 — UI/UX
 
 As seções sobre configuração do Supabase, criação das tabelas, RLS e criação de usuário serão adicionadas aqui conforme cada etapa for concluída.
