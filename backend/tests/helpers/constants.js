@@ -3,6 +3,20 @@ export const USER = { id: '11111111-1111-4111-8111-111111111111', email: 'ana@ex
 export const VALID_TOKEN = 'token-valido'
 export const CRASH_TOKEN = 'token-que-derruba-o-supabase'
 
+// Verificação em duas etapas: um usuário que ativou o app autenticador e
+// tokens no formato JWT (cabeçalho.conteúdo.assinatura) com cada nível.
+export const MFA_USER = {
+  id: '66666666-6666-4666-8666-666666666666',
+  email: 'bia@exemplo.com',
+  factors: [{ id: 'f1', factor_type: 'totp', status: 'verified' }],
+}
+export function fakeJwt(claims) {
+  const part = (value) => Buffer.from(JSON.stringify(value)).toString('base64url')
+  return `${part({ alg: 'HS256', typ: 'JWT' })}.${part(claims)}.assinatura`
+}
+export const MFA_AAL1_TOKEN = fakeJwt({ sub: MFA_USER.id, aal: 'aal1' })
+export const MFA_AAL2_TOKEN = fakeJwt({ sub: MFA_USER.id, aal: 'aal2' })
+
 export const CATEGORY_ID = '22222222-2222-4222-8222-222222222222'
 export const FINANCE_ID = '33333333-3333-4333-8333-333333333333'
 export const EXPENSE_ID = '44444444-4444-4444-8444-444444444444'

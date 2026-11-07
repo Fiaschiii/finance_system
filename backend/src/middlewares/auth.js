@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { isMfaSatisfied } from '../utils/mfa.js'
 
 const { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } = process.env
 
@@ -36,6 +37,16 @@ export async function requireAuth(req, res, next) {
     user = data.user
   } catch (err) {
     return res.status(500).json({ error: 'Falha ao validar autenticação' })
+  }
+
+  // Senha certa, mas a pessoa ativou o app autenticador e ainda não digitou
+  // o código: o token é verdadeiro, só não basta. O banco (RLS, migração
+  // 0004) tem a mesma regra, para quem tentar falar direto com o Supabase.
+  if (!isMfaSatisfied(user, token)) {
+    return res.status(403).json({
+      error: 'Falta o código do app autenticador (verificação em duas etapas).',
+      code: 'mfa_required',
+    })
   }
 
   req.user = user
