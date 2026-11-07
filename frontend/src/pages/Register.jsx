@@ -43,7 +43,7 @@ function Register() {
         </label>
         <label>
           Senha
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
+          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} />
         </label>
         {error && <p className="status status--error">{error}</p>}
         {info && <p className="status status--ok">{info}</p>}
