@@ -12,6 +12,7 @@ import ExpenseForm from '../components/ExpenseForm.jsx'
 import ExpenseList from '../components/ExpenseList.jsx'
 import BudgetForm from '../components/BudgetForm.jsx'
 import BudgetList from '../components/BudgetList.jsx'
+import CategoryChart from '../components/CategoryChart.jsx'
 import SupabaseStatus from '../components/SupabaseStatus.jsx'
 
 function Dashboard() {
@@ -153,6 +154,13 @@ function Dashboard() {
               Caixinha estourada: {overBudgetCategories.map((budget) => budget.category.name).join(', ')}.
             </p>
           )}
+
+          <div className="section-header">
+            <h3>Gastos por categoria</h3>
+          </div>
+          <div className="chart-panel">
+            <CategoryChart expenses={expensesState.expenses} />
+          </div>
 
           <div className="section-header">
             <h3>Caixinhas do mês</h3>

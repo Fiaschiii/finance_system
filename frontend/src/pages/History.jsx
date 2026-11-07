@@ -1,6 +1,7 @@
 import { useFinanceHistory } from '../hooks/useFinanceHistory.js'
 import { useCategories } from '../hooks/useCategories.js'
 import HistoryRow from '../components/HistoryRow.jsx'
+import MonthlyChart from '../components/MonthlyChart.jsx'
 
 function History() {
   const { history, loading, error, updateSalary, reload } = useFinanceHistory()
@@ -31,6 +32,18 @@ function History() {
 
       {!combinedLoading && !combinedError && history.length === 0 && (
         <p className="empty-state">Nenhum mês cadastrado ainda.</p>
+      )}
+
+      {!combinedLoading && !combinedError && history.length > 0 && (
+        <div className="section-header">
+          <h3>Salário × Gastos{history.length > 1 ? ` (últimos ${Math.min(history.length, 12)} meses)` : ''}</h3>
+        </div>
+      )}
+
+      {!combinedLoading && !combinedError && history.length > 0 && (
+        <div className="chart-panel">
+          <MonthlyChart history={history} />
+        </div>
       )}
 
       {!combinedLoading && !combinedError && history.length > 0 && (

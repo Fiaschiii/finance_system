@@ -44,3 +44,16 @@ export function sumMoney(values) {
 export function subtractMoney(a, b) {
   return (Math.round(Number(a) * 100) - Math.round(Number(b) * 100)) / 100
 }
+
+const brlCompact = new Intl.NumberFormat('pt-BR', {
+  style: 'currency',
+  currency: 'BRL',
+  notation: 'compact',
+  maximumFractionDigits: 1,
+})
+
+// 5000 -> "R$ 5 mil" (rótulos de eixo de gráfico, onde não cabe o valor inteiro)
+export function formatCompactBRL(value) {
+  const number = Number(value)
+  return brlCompact.format(Number.isFinite(number) ? number : 0)
+}

@@ -28,3 +28,8 @@ export function formatDayMonth(iso) {
   const [, month, day] = iso.split('-')
   return `${day}/${month}`
 }
+
+// (10, 2026) -> "Out/26" (rótulo curto, para eixos de gráfico)
+export function formatShortMonthYear(month, year) {
+  return `${MONTH_NAMES[month - 1].slice(0, 3)}/${String(year).slice(-2)}`
+}
