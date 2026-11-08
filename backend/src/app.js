@@ -1,7 +1,6 @@
 import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
-import rateLimit from 'express-rate-limit'
 import healthRoutes from './routes/health.routes.js'
 import authRoutes from './routes/auth.routes.js'
 import financeRoutes from './routes/finance.routes.js'
@@ -9,8 +8,18 @@ import categoryRoutes from './routes/category.routes.js'
 import expenseRoutes from './routes/expense.routes.js'
 import budgetRoutes from './routes/budget.routes.js'
 import { notFoundHandler, errorHandler } from './middlewares/errorHandler.js'
+import { burstLimiter, ipLimiter, authFailureLimiter } from './middlewares/rateLimits.js'
 
 const app = express()
+
+// Atrás de um proxy (Nginx, Render, Railway...), todo mundo chegaria com o IP
+// do proxy e dividiria o mesmo limite. TRUST_PROXY=1 faz o Express ler o IP
+// real no X-Forwarded-For. Sem proxy, deixe vazio: senão qualquer um inventa
+// um IP novo a cada requisição e escapa do limite.
+const trustProxy = Number(process.env.TRUST_PROXY)
+if (Number.isInteger(trustProxy) && trustProxy > 0) {
+  app.set('trust proxy', trustProxy)
+}
 
 // Cabeçalhos de segurança (bloqueia o uso da API dentro de iframes, desliga
 // o "X-Powered-By: Express", força o navegador a respeitar o Content-Type etc.).
@@ -18,19 +27,10 @@ app.use(helmet())
 
 app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:5173' }))
 
-// Limite de requisições por IP: segura quem tentar martelar a API (cada
-// requisição autenticada também consulta o Supabase para validar o token).
-// 300 a cada 15 minutos é bem acima do que uma pessoa usando o sistema faz.
-app.use(
-  '/api',
-  rateLimit({
-    windowMs: 15 * 60 * 1000,
-    limit: Number(process.env.RATE_LIMIT_MAX) || 300,
-    standardHeaders: 'draft-7',
-    legacyHeaders: false,
-    message: { error: 'Muitas requisições em pouco tempo. Aguarde alguns minutos e tente de novo.' },
-  })
-)
+// Limites de requisições (Etapa 17; detalhes em middlewares/rateLimits.js).
+// Ficam antes da leitura do corpo e da validação do token: quem passou do
+// limite é barrado sem gastar processamento nem consulta ao Supabase.
+app.use('/api', burstLimiter, ipLimiter, authFailureLimiter)
 
 // Os corpos desta API são pequenos (um gasto, um salário): 10 kB sobra.
 app.use(express.json({ limit: '10kb' }))

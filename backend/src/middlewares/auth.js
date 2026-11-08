@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { isMfaSatisfied } from '../utils/mfa.js'
+import { fetchWithTimeout } from '../utils/fetchWithTimeout.js'
 
 const { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } = process.env
 
@@ -25,7 +26,7 @@ export async function requireAuth(req, res, next) {
     // é só o token que chegou nesta requisição.
     supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
       auth: { persistSession: false, autoRefreshToken: false },
-      global: { headers: { Authorization: `Bearer ${token}` } },
+      global: { headers: { Authorization: `Bearer ${token}` }, fetch: fetchWithTimeout },
     })
 
     const { data, error } = await supabase.auth.getUser(token)

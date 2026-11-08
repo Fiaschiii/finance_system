@@ -1,11 +1,12 @@
 import { Router } from 'express'
 import { requireAuth } from '../middlewares/auth.js'
+import { userWriteLimiter } from '../middlewares/rateLimits.js'
 import * as financeController from '../controllers/financeController.js'
 
 const router = Router()
 
 // Tudo aqui exige usuário autenticado.
-router.use(requireAuth)
+router.use(requireAuth, userWriteLimiter)
 
 router.get('/', financeController.listAll)
 router.get('/current', financeController.getCurrent)

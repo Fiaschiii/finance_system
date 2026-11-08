@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { fetchWithTimeout } from '../utils/fetchWithTimeout.js'
 
 const { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } = process.env
 
@@ -13,5 +14,5 @@ if (isSupabaseConfigured && !/^https:\/\/[a-z0-9]+\.supabase\.co\/?$/.test(SUPAB
 }
 
 export const supabase = isSupabaseConfigured
-  ? createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
+  ? createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, { global: { fetch: fetchWithTimeout } })
   : null

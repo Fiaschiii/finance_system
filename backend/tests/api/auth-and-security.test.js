@@ -2,6 +2,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import request from 'supertest'
 import { createClient } from '@supabase/supabase-js'
 import app from '../../src/app.js'
+import { fetchWithTimeout } from '../../src/utils/fetchWithTimeout.js'
 import * as financeService from '../../src/services/financeService.js'
 import { USER, VALID_TOKEN, CRASH_TOKEN, AUTH } from '../helpers/constants.js'
 
@@ -47,6 +48,8 @@ describe('autenticação', () => {
     expect(key).toBe(process.env.SUPABASE_PUBLISHABLE_KEY)
     expect(options.global.headers.Authorization).toBe(`Bearer ${VALID_TOKEN}`)
     expect(options.auth.persistSession).toBe(false)
+    // Chamadas ao Supabase com prazo: lentidão lá não pendura o backend.
+    expect(options.global.fetch).toBe(fetchWithTimeout)
   })
 
   it.each([
@@ -95,7 +98,7 @@ describe('proteções gerais', () => {
 
   it('informa o limite de requisições nos cabeçalhos', async () => {
     const res = await request(app).get('/api/health')
-    expect(res.headers.ratelimit).toMatch(/limit=300/)
+    expect(res.headers.ratelimit).toMatch(`limit=${process.env.RATE_LIMIT_MAX},`)
   })
 
   it('rota inexistente: 404 em JSON', async () => {

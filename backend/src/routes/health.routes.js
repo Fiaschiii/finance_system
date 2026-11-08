@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import { isSupabaseConfigured, supabase } from '../config/supabase.js'
+import { healthDbLimiter } from '../middlewares/rateLimits.js'
 
 const router = Router()
 
@@ -11,7 +12,8 @@ router.get('/', (req, res) => {
   })
 })
 
-router.get('/supabase', async (req, res) => {
+// Consulta o banco sem exigir login: limite próprio, bem mais baixo.
+router.get('/supabase', healthDbLimiter, async (req, res) => {
   if (!isSupabaseConfigured) {
     return res.json({
       configured: false,
