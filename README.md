@@ -101,13 +101,32 @@ Por dentro: o Supabase marca a sessão como `aal1` (só senha) ou `aal2` (senha 
 3. **Authentication → Sign In / Providers → Email:** ligue **Secure password change**. Assim, trocar a senha exige ter entrado há pouco tempo.
 4. **Em produção, se a hospedagem permitir cabeçalhos:** mande a mesma política como cabeçalho `Content-Security-Policy` e acrescente `frame-ancestors 'none'` (impede o site de ser aberto dentro de um iframe alheio). Essa diretiva não funciona pela `<meta>`.
 
+## Resistência a excesso de requisições (Etapa 17)
+
+O backend aguenta quem tenta martelar a API (um robô, um script com defeito, alguém clicando sem parar) sem cair e sem gastar consultas ao Supabase à toa. Quem passa de um limite recebe **429** com a mensagem e quantos segundos esperar (no corpo, `retryAfter`, e no cabeçalho `Retry-After`).
+
+| Limite | Contado por | Padrão | Variável no `backend/.env` |
+|---|---|---|---|
+| Rajada | IP | 60 por minuto | `RATE_LIMIT_BURST` |
+| Volume | IP | 300 a cada 15 min | `RATE_LIMIT_MAX` |
+| Login inválido (respostas 401) | IP | 30 a cada 15 min | `RATE_LIMIT_AUTH_FAILURES` |
+| Gravações (criar, editar, excluir) | usuário | 30 por minuto | `RATE_LIMIT_WRITES` |
+| Teste de conexão com o banco (`/api/health/supabase`) | IP | 10 por minuto | `RATE_LIMIT_HEALTH_DB` |
+
+- Os limites por IP rodam **antes** de ler o corpo e de validar o token: quem foi barrado não custa nenhuma consulta ao Supabase. O de gravações conta por usuário, então trocar de IP não ajuda.
+- **Conexões lentas** (ataque *slowloris*): cabeçalhos em até 10 s e a requisição inteira em até 30 s; depois disso, a conexão é fechada (408). Conexões paradas fecham em 5 s.
+- **Supabase lento**: cada chamada ao Supabase tem 10 s de prazo. Passou disso, vira erro em vez de deixar requisições se acumulando no backend.
+- **Atrás de um proxy** (Nginx, Render, Railway...), preencha `TRUST_PROXY=1`, senão todos os usuários dividem o limite do IP do proxy. Sem proxy, deixe vazio: assim ninguém escapa do limite inventando um `X-Forwarded-For`.
+- **No frontend**, o aviso de erro diz quando tentar de novo ("… (liberado em 42 s)"), e leituras iguais feitas ao mesmo tempo viram uma só requisição.
+- Os contadores ficam na memória do backend: reiniciá-lo zera todos. Para mais de uma instância do backend, eles teriam de ir para um armazenamento compartilhado (Redis, por exemplo).
+
 ## Testes
 
 Os testes rodam sem internet e **sem tocar no Supabase**: o login e o banco são simulados, então podem ser rodados quantas vezes quiser, sem criar nem apagar dados reais.
 
 ```bash
-cd backend && npm test     # 198 testes
-cd frontend && npm test    # 145 testes
+cd backend && npm test     # 210 testes
+cd frontend && npm test    # 154 testes
 ```
 
 Use `npm run test:watch` para rodar de novo a cada arquivo salvo.
@@ -118,13 +137,15 @@ Use `npm run test:watch` para rodar de novo a cada arquivo salvo.
 - `unit/services.test.js`: **toda consulta filtra por `user_id`** e todo insert grava o dono do login, nunca o enviado; tradução dos erros do Postgres (nome repetido, categoria com gastos); somas por mês e por categoria; criação do mês sem duplicar quando chegam duas requisições juntas.
 - `api/auth-and-security.test.js`: todas as rotas exigem login (sem token, token inválido, Supabase fora do ar); o backend usa a chave publishable com o token do usuário; `helmet`, CORS, JSON malformado, corpo acima de 10 kB e erro 500 sem detalhe em produção.
 - `unit/mfa.test.js` e `api/mfa.test.js`: com app autenticador ativado, sessão só com senha (`aal1`) recebe 403 e não chega a consultar os dados; com o código (`aal2`) passa; sem app, nada muda.
-- `api/rate-limit.test.js`: a requisição seguinte ao limite recebe 429.
+- `api/rate-limit.test.js`: cada limite (rajada, volume, login inválido, gravações por usuário, teste do banco) devolve 429 com o tempo de espera; quem foi barrado não chega ao Supabase; GET não conta como gravação; cada usuário tem o seu contador; `X-Forwarded-For` só vale com `TRUST_PROXY`.
+- `unit/fetchWithTimeout.test.js`: a chamada ao Supabase é cancelada quando passa do prazo.
 - `api/finance.test.js`, `api/expenses.test.js`, `api/categories-and-budgets.test.js`: cada rota, com os casos de sucesso, de validação (400), de "não encontrado / de outra pessoa" (404), de categoria de outro usuário e de campos enviados pelo cliente que devem ser ignorados (`user_id`, `monthly_finance_id`).
 
 **Frontend** (Vitest + Testing Library + jsdom), em `frontend/tests/`:
 
 - `utils/`: leitura de valores digitados no formato brasileiro (`1.200,50`, `R$ 1.200`), formatação de moeda, somas em centavos, datas sem erro de fuso e tradução das mensagens do Supabase.
-- `services/api.test.js`: envio do token, mensagens de erro, resposta sem corpo e backend desligado.
+- `services/api.test.js`: envio do token, mensagens de erro, resposta sem corpo, backend desligado, aviso de 429 com o tempo de espera e leituras iguais agrupadas (sem reaproveitar leitura antiga depois de uma gravação).
+- `components/SupabaseStatus.test.jsx`: o teste de conexão mostra o aviso de limite em vez de "não configurado".
 - `components/`: formulários de salário e de gasto (validação, valores enviados, edição), rotas protegidas (sem login vai para o login), tela de cadastro (senha mínima de 8 caracteres), cabeçalho com menu de celular, seletor de mês, avisos rápidos, tela de carregamento entre páginas e a troca de mês no Resumo (inclusive quando uma resposta antiga chega atrasada).
 - `utils/mfa.test.js` e `components/Mfa.test.jsx`: leitura do nível da sessão, a tela do código (certo, errado, sair) e ativar/cancelar/desativar em Configurações.
 - `config/csp.test.js`, `components/Captcha.test.jsx` e `components/IdleLogout.test.jsx`: o que a CSP libera e bloqueia, o CAPTCHA travando o botão até a verificação e renovando o comprovante a cada tentativa, e a contagem de inatividade (aviso, saída só deste navegador, uso em outra aba, mensagem no login).
@@ -137,7 +158,7 @@ O que protege os dados:
 
 - **RLS no banco**: cada usuário só lê e grava as próprias linhas, mesmo acessando a API do Supabase diretamente. Detalhes e testes em [`database/README.md`](database/README.md#segurança-etapa-12).
 - **O backend nunca usa a chave secret.** Toda consulta é feita com o login do próprio usuário (o token que o frontend envia), então o RLS vale sempre.
-- **Backend**: cabeçalhos de segurança (`helmet`), CORS liberado só para o `FRONTEND_URL`, limite de 300 requisições a cada 15 minutos por IP, corpo JSON de no máximo 10 kB e validação de todos os campos. Com `NODE_ENV=production`, os erros 500 não mostram detalhes técnicos.
+- **Backend**: cabeçalhos de segurança (`helmet`), CORS liberado só para o `FRONTEND_URL`, limites de requisições por IP e por usuário (ver [Etapa 17](#resistência-a-excesso-de-requisições-etapa-17)), prazos para conexões lentas, corpo JSON de no máximo 10 kB e validação de todos os campos. Com `NODE_ENV=production`, os erros 500 não mostram detalhes técnicos.
 
 ### Ajustes no painel do Supabase (manual, uma vez)
 
@@ -167,6 +188,6 @@ O que protege os dados:
 - [x] Etapa 14 — UI/UX
 - [x] Etapa 15 — Verificação em duas etapas (MFA)
 - [x] Etapa 16 — Segurança avançada
-- [ ] Etapa 17 — Resistência a excesso de requisições
+- [x] Etapa 17 — Resistência a excesso de requisições
 
 As seções sobre configuração do Supabase, criação das tabelas, RLS e criação de usuário serão adicionadas aqui conforme cada etapa for concluída.
