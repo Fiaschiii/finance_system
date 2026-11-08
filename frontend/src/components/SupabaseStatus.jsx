@@ -7,8 +7,12 @@ function SupabaseStatus() {
 
   useEffect(() => {
     fetch(`${API_URL}/api/health/supabase`)
-      .then((res) => res.json())
-      .then((data) => setState({ loading: false, ...data }))
+      .then(async (res) => {
+        const data = await res.json()
+        // Limite de testes de conexão (Etapa 17): não é "Supabase não configurado".
+        if (res.status === 429) return setState({ loading: false, rateLimited: true, error: data.error })
+        setState({ loading: false, ...data })
+      })
       .catch((error) =>
         setState({ loading: false, fetchFailed: true, error: error.message })
       )
@@ -25,6 +29,10 @@ function SupabaseStatus() {
         rodando (npm run dev na pasta backend) e sem erros no terminal.
       </p>
     )
+  }
+
+  if (state.rateLimited) {
+    return <p className="status status--warning">{state.error}</p>
   }
 
   if (!state.configured) {
