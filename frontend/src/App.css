@@ -2055,3 +2055,18 @@ path.monthly-chart__bar--spent {
     opacity: 0;
   }
 }
+
+/* Ícones (Octicons) ao lado do texto dos links de navegação */
+.app-header__nav a,
+.app-header__logout,
+.auth-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.app-header__nav a svg,
+.app-header__logout svg,
+.auth-links a svg {
+  flex-shrink: 0;
+}

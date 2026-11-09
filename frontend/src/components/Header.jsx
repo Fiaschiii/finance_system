@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { NavLink, Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth.jsx'
+import { GearIcon, GraphIcon, HistoryIcon, SignInIcon, SignOutIcon } from '@primer/octicons-react'
 import Icon from './Icon.jsx'
 
 function navClass({ isActive }) {
@@ -60,13 +61,13 @@ function Header() {
       <nav id="main-nav" className={`app-header__nav${menuOpen ? ' app-header__nav--open' : ''}`}>
         {signedIn ? (
           <>
-            <NavLink to="/" end className={navClass}>Resumo</NavLink>
-            <NavLink to="/history" className={navClass}>Histórico</NavLink>
-            <NavLink to="/settings" className={navClass}>Configurações</NavLink>
+            <NavLink to="/" end className={navClass}><GraphIcon size={16} /> Resumo</NavLink>
+            <NavLink to="/history" className={navClass}><HistoryIcon size={16} /> Histórico</NavLink>
+            <NavLink to="/settings" className={navClass}><GearIcon size={16} /> Configurações</NavLink>
             <span className="app-header__account">
               <span className="app-header__user" title={user.email}>{user.email}</span>
               <button type="button" className="app-header__logout" onClick={handleLogout}>
-                Sair
+                <SignOutIcon size={16} /> Sair
               </button>
             </span>
           </>
@@ -75,7 +76,7 @@ function Header() {
             Sair
           </button>
         ) : (
-          <NavLink to="/login" className={navClass}>Entrar</NavLink>
+          <NavLink to="/login" className={navClass}><SignInIcon size={16} /> Entrar</NavLink>
         )}
       </nav>
     </header>

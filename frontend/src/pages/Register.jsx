@@ -5,6 +5,7 @@ import { translateAuthError } from '../utils/authErrors.js'
 import { usePageTitle } from '../hooks/usePageTitle.js'
 import { useRouteReady } from '../hooks/useRouteLoading.jsx'
 import { useCaptcha } from '../hooks/useCaptcha.jsx'
+import { SignInIcon } from '@primer/octicons-react'
 
 function Register() {
   usePageTitle('Criar conta')
@@ -60,7 +61,7 @@ function Register() {
         </button>
       </form>
       <p className="auth-links">
-        <Link to="/login">Já tenho conta</Link>
+        <Link to="/login"><SignInIcon size={16} /> Já tenho conta</Link>
       </p>
     </section>
   )

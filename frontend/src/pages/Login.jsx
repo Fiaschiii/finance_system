@@ -7,6 +7,7 @@ import { useRouteReady } from '../hooks/useRouteLoading.jsx'
 import { useCaptcha } from '../hooks/useCaptcha.jsx'
 import { LOGOUT_REASON_KEY } from '../components/IdleLogout.jsx'
 import { IDLE_TIMEOUT_MINUTES } from '../config/security.js'
+import { KeyIcon, PersonAddIcon } from '@primer/octicons-react'
 
 function Login() {
   usePageTitle('Entrar')
@@ -58,8 +59,8 @@ function Login() {
         </button>
       </form>
       <p className="auth-links">
-        <Link to="/forgot-password">Esqueci minha senha</Link>
-        <Link to="/register">Criar conta</Link>
+        <Link to="/forgot-password"><KeyIcon size={16} /> Esqueci minha senha</Link>
+        <Link to="/register"><PersonAddIcon size={16} /> Criar conta</Link>
       </p>
     </section>
   )
