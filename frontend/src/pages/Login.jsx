@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth.jsx'
 import { translateAuthError } from '../utils/authErrors.js'
 import { usePageTitle } from '../hooks/usePageTitle.js'
 import { useRouteReady } from '../hooks/useRouteLoading.jsx'
+import { KeyIcon, PersonAddIcon } from '@primer/octicons-react'
 
 function Login() {
   usePageTitle('Entrar')
@@ -46,8 +47,8 @@ function Login() {
         </button>
       </form>
       <p className="auth-links">
-        <Link to="/forgot-password">Esqueci minha senha</Link>
-        <Link to="/register">Criar conta</Link>
+        <Link to="/forgot-password"><KeyIcon size={16} /> Esqueci minha senha</Link>
+        <Link to="/register"><PersonAddIcon size={16} /> Criar conta</Link>
       </p>
     </section>
   )

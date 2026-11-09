@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth.jsx'
 import { translateAuthError } from '../utils/authErrors.js'
 import { usePageTitle } from '../hooks/usePageTitle.js'
 import { useRouteReady } from '../hooks/useRouteLoading.jsx'
+import { ArrowLeftIcon } from '@primer/octicons-react'
 
 function ForgotPassword() {
   usePageTitle('Esqueci minha senha')
@@ -32,7 +33,7 @@ function ForgotPassword() {
       <section className="page page--auth">
         <h1>Confira seu e-mail</h1>
         <p>Se {email} estiver cadastrado, enviamos um link para redefinir a senha.</p>
-        <p className="auth-links"><Link to="/login">Voltar para o login</Link></p>
+        <p className="auth-links"><Link to="/login"><ArrowLeftIcon size={16} /> Voltar para o login</Link></p>
       </section>
     )
   }
@@ -50,7 +51,7 @@ function ForgotPassword() {
           {loading ? 'Enviando…' : 'Enviar link de recuperação'}
         </button>
       </form>
-      <p className="auth-links"><Link to="/login">Voltar para o login</Link></p>
+      <p className="auth-links"><Link to="/login"><ArrowLeftIcon size={16} /> Voltar para o login</Link></p>
     </section>
   )
 }

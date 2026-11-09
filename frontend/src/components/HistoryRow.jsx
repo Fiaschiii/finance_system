@@ -6,6 +6,7 @@ import SalaryForm from './SalaryForm.jsx'
 import ExpenseForm from './ExpenseForm.jsx'
 import ExpenseList from './ExpenseList.jsx'
 import { SkeletonRows } from './Skeleton.jsx'
+import { GraphIcon } from '@primer/octicons-react'
 import Icon from './Icon.jsx'
 import { formatBRL, subtractMoney } from '../utils/currency.js'
 import { formatMonthYear, monthRange, toMonthParam } from '../utils/date.js'
@@ -62,7 +63,7 @@ function HistoryRow({ item, categories, onSaveSalary, onChanged }) {
               <span aria-hidden="true">{expanded ? '▾' : '▸'}</span> {monthLabel}
             </button>
             <Link className="action-button history-month__link" to={`/?mes=${toMonthParam(item.month, item.year)}`}>
-              Ver resumo
+              <GraphIcon size={14} /> Ver resumo
             </Link>
           </div>
         </td>
