@@ -12,5 +12,8 @@ export default defineConfig(({ mode }) => ({
     include: ['tests/**/*.test.{js,jsx}'],
     setupFiles: ['tests/setup.js'],
     restoreMocks: true,
+    // Os testes não dependem do .env de cada máquina: CAPTCHA desligado por
+    // padrão (os testes do CAPTCHA ligam ele por conta própria).
+    env: { VITE_TURNSTILE_SITE_KEY: '' },
   },
 }))
