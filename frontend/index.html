@@ -7,11 +7,12 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>Controle Financeiro</title>
     <script>
-      // Aplica o tema escolhido em Configurações ANTES de desenhar a página,
-      // para não "piscar" branco ao abrir no tema escuro.
+      // Aplica o tema e o idioma escolhidos em Minha conta ANTES de desenhar a
+      // página, para não "piscar" branco ao abrir no tema escuro.
       try {
         var tema = localStorage.getItem('tema')
         if (tema === 'light' || tema === 'dark') document.documentElement.dataset.theme = tema
+        if (localStorage.getItem('idioma') === 'en') document.documentElement.lang = 'en'
       } catch (e) {}
     </script>
   </head>

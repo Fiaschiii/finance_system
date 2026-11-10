@@ -11,6 +11,7 @@ import ResetPassword from './pages/ResetPassword.jsx'
 import MfaVerify from './pages/MfaVerify.jsx'
 import History from './pages/History.jsx'
 import Settings from './pages/Settings.jsx'
+import Profile from './pages/Profile.jsx'
 import { RouteLoadingProvider } from './hooks/useRouteLoading.jsx'
 import './App.css'
 
@@ -30,6 +31,7 @@ function App() {
             <Route path="/" element={<RequireAuth><Dashboard /></RequireAuth>} />
             <Route path="/history" element={<RequireAuth><History /></RequireAuth>} />
             <Route path="/settings" element={<RequireAuth><Settings /></RequireAuth>} />
+            <Route path="/profile" element={<RequireAuth><Profile /></RequireAuth>} />
           </Routes>
         </main>
       </div>

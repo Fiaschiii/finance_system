@@ -1,7 +1,9 @@
 import { useState } from 'react'
+import { useI18n } from '../i18n/index.jsx'
 
 // Formulário de categoria, usado para criar e para editar.
 function CategoryForm({ initialValues, onSave, onCancel }) {
+  const { t } = useI18n()
   const [name, setName] = useState(initialValues?.name ?? '')
   const [description, setDescription] = useState(initialValues?.description ?? '')
   const [error, setError] = useState('')
@@ -12,7 +14,7 @@ function CategoryForm({ initialValues, onSave, onCancel }) {
     setError('')
 
     if (!name.trim()) {
-      setError('Informe o nome da categoria.')
+      setError(t('category.errName'))
       return
     }
 
@@ -32,7 +34,7 @@ function CategoryForm({ initialValues, onSave, onCancel }) {
   return (
     <form className="category-form" onSubmit={handleSubmit}>
       <label>
-        Nome
+        {t('category.name')}
         <input
           type="text"
           value={name}
@@ -43,7 +45,7 @@ function CategoryForm({ initialValues, onSave, onCancel }) {
       </label>
 
       <label>
-        Descrição (opcional)
+        {t('category.description')}
         <input
           type="text"
           value={description}
@@ -56,10 +58,10 @@ function CategoryForm({ initialValues, onSave, onCancel }) {
 
       <div className="form-actions">
         <button type="submit" className="button" disabled={saving}>
-          {saving ? 'Salvando…' : 'Salvar categoria'}
+          {saving ? t('common.saving') : t('category.submit')}
         </button>
         <button type="button" className="button button--ghost" onClick={onCancel} disabled={saving}>
-          Cancelar
+          {t('common.cancel')}
         </button>
       </div>
     </form>

@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { formatInputBRL, parseBRL } from '../utils/currency.js'
+import { useI18n } from '../i18n/index.jsx'
 
 function SalaryForm({ monthLabel, initialValue, onSave, onCancel }) {
+  const { t } = useI18n()
   // Salário 0 significa "ainda não informado" (é o que nasce quando o primeiro gasto do mês
   // é lançado antes do salário): o campo abre vazio, senão quem digita 1200 forma "0,001200".
   const [text, setText] = useState(initialValue ? formatInputBRL(initialValue) : '')
@@ -14,7 +16,7 @@ function SalaryForm({ monthLabel, initialValue, onSave, onCancel }) {
 
     const salary = parseBRL(text)
     if (Number.isNaN(salary)) {
-      setError('Informe um valor válido, por exemplo 1.200,00.')
+      setError(t('salary.errValue', { example: t('money.exampleSalary') }))
       return
     }
 
@@ -31,13 +33,13 @@ function SalaryForm({ monthLabel, initialValue, onSave, onCancel }) {
   return (
     <form className="salary-form" onSubmit={handleSubmit}>
       <label>
-        Salário de {monthLabel}
+        {t('salary.label', { month: monthLabel })}
         <span className="salary-input">
           <span aria-hidden="true">R$</span>
           <input
             type="text"
             inputMode="decimal"
-            placeholder="1.200,00"
+            placeholder={t('money.exampleSalary')}
             value={text}
             onChange={(event) => setText(event.target.value)}
             autoFocus
@@ -49,11 +51,11 @@ function SalaryForm({ monthLabel, initialValue, onSave, onCancel }) {
 
       <div className="salary-form__actions">
         <button type="submit" className="button" disabled={saving}>
-          {saving ? 'Salvando…' : 'Salvar salário'}
+          {saving ? t('common.saving') : t('salary.submit')}
         </button>
         {onCancel && (
           <button type="button" className="button button--ghost" onClick={onCancel} disabled={saving}>
-            Cancelar
+            {t('common.cancel')}
           </button>
         )}
       </div>

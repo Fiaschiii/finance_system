@@ -18,12 +18,14 @@ import BudgetList from '../components/BudgetList.jsx'
 import CategoryChart from '../components/CategoryChart.jsx'
 import MonthPicker from '../components/MonthPicker.jsx'
 import Icon from '../components/Icon.jsx'
+import DashboardAlerts from '../components/DashboardAlerts.jsx'
+import { useI18n } from '../i18n/index.jsx'
 import { SkeletonCards, SkeletonRows, LoadingLabel } from '../components/Skeleton.jsx'
 
 // Página "Resumo": o mês exibido vem da URL (?mes=2026-10); sem ela, é o mês
 // atual. Assim, recarregar a página ou voltar do Histórico mantém o mês.
 function Dashboard() {
-  usePageTitle('Resumo')
+  usePageTitle('dashboard.pageTitle')
   const [searchParams, setSearchParams] = useSearchParams()
   const categoriesState = useCategories()
 
@@ -52,6 +54,7 @@ function Dashboard() {
 
 function MonthSummary({ month, year, current, onChangeMonth, categoriesState }) {
   const toast = useToast()
+  const { t } = useI18n()
   const financeState = useFinance(month, year)
   const { finance } = financeState
   const expensesState = useExpenses(month, year)
@@ -91,7 +94,7 @@ function MonthSummary({ month, year, current, onChangeMonth, categoriesState }) 
   )
   const salary = Number(finance?.salary ?? 0)
   const spentPercent = salary > 0 ? Math.round((totalSpent / salary) * 100) : null
-  const overBudgetCategories = budgetsState.budgets.filter((budget) => budget.spent > budget.limit_amount)
+  const isCurrentMonth = month === current.month && year === current.year
 
   function reloadAll() {
     financeState.reload()
@@ -103,7 +106,7 @@ function MonthSummary({ month, year, current, onChangeMonth, categoriesState }) 
   async function handleSaveSalary(value) {
     await financeState.saveSalary(value)
     setEditingSalary(false)
-    toast('Salário salvo.')
+    toast(t('toast.salarySaved'))
   }
 
   async function handleAddExpense(values) {
@@ -114,19 +117,19 @@ function MonthSummary({ month, year, current, onChangeMonth, categoriesState }) 
       await financeState.reload({ silent: true })
     }
     setAddingExpense(false)
-    toast('Gasto adicionado.')
+    toast(t('toast.expenseAdded'))
   }
 
   async function handleAddBudget(values) {
     await budgetsState.addBudget(values)
     setAddingBudget(false)
-    toast('Caixinha criada.')
+    toast(t('toast.budgetCreated'))
   }
 
   return (
     <section className="page page--wide">
       <div className="page-header">
-        <h1>Resumo do mês</h1>
+        <h1>{t('dashboard.title')}</h1>
         <MonthPicker month={month} year={year} current={current} onChange={onChangeMonth} />
       </div>
 
@@ -142,17 +145,24 @@ function MonthSummary({ month, year, current, onChangeMonth, categoriesState }) 
         <div className="dashboard-panel">
           <p className="status status--error">{error}</p>
           <button type="button" className="button button--ghost" onClick={reloadAll}>
-            Tentar de novo
+            {t('common.retry')}
           </button>
         </div>
       )}
 
       {ready && (
         <>
+          <DashboardAlerts
+            budgets={budgetsState.budgets}
+            salaryMissing={Boolean(finance) && salary === 0 && isCurrentMonth && !editingSalary}
+            monthLabel={monthLabel}
+            onInformSalary={() => setEditingSalary(true)}
+          />
+
           {(editingSalary || !finance) && (
             <div className="dashboard-panel dashboard-panel--highlight">
               <h2 className="dashboard-panel__title">
-                {finance ? 'Editar salário' : `Você ainda não cadastrou o salário de ${monthLabel}.`}
+                {finance ? t('dashboard.editSalary') : t('dashboard.noSalary', { month: monthLabel })}
               </h2>
               <SalaryForm
                 monthLabel={monthLabel}
@@ -165,30 +175,30 @@ function MonthSummary({ month, year, current, onChangeMonth, categoriesState }) 
 
           {finance && (
             <div className="dashboard-cards">
-              <DashboardCard label="Salário" icon="wallet" value={formatBRL(finance.salary)}>
+              <DashboardCard label={t('card.salary')} icon="wallet" value={formatBRL(finance.salary)}>
                 {!editingSalary && (
                   <button
                     type="button"
                     className="action-button"
-                    aria-label={salary === 0 ? undefined : 'Editar salário'}
+                    aria-label={salary === 0 ? undefined : t('dashboard.editSalary')}
                     onClick={() => setEditingSalary(true)}
                   >
-                    {salary === 0 ? 'Informar salário' : 'Editar'}
+                    {salary === 0 ? t('dashboard.informSalary') : t('common.edit')}
                   </button>
                 )}
               </DashboardCard>
-              <DashboardCard label="Gastos" icon="cart" value={formatBRL(totalSpent)} />
+              <DashboardCard label={t('card.spent')} icon="cart" value={formatBRL(totalSpent)} />
               <DashboardCard
-                label="Saldo"
+                label={t('card.balance')}
                 icon="scale"
                 value={formatBRL(balance)}
                 tone={balance < 0 ? 'negative' : 'positive'}
               />
-              <DashboardCard label="Gastos fixos" icon="pin" value={formatBRL(fixedTotal)} />
-              <DashboardCard label="Gastos variáveis" icon="shuffle" value={formatBRL(variableTotal)} />
+              <DashboardCard label={t('card.fixed')} icon="pin" value={formatBRL(fixedTotal)} />
+              <DashboardCard label={t('card.variable')} icon="shuffle" value={formatBRL(variableTotal)} />
               {spentPercent !== null && (
                 <DashboardCard
-                  label="% do salário gasto"
+                  label={t('card.percent')}
                   icon="percent"
                   value={`${spentPercent}%`}
                   tone={spentPercent > 100 ? 'negative' : undefined}
@@ -198,30 +208,17 @@ function MonthSummary({ month, year, current, onChangeMonth, categoriesState }) 
             </div>
           )}
 
-          {overBudgetCategories.length > 0 && (
-            <p className="status status--warning status--with-icon">
-              <Icon name="alert" />
-              <span>
-                Caixinha estourada: {overBudgetCategories.map((budget) => budget.category.name).join(', ')}.
-              </span>
-            </p>
-          )}
-
           <div className="section-header">
-            <h2>Gastos do mês</h2>
+            <h2>{t('dashboard.expensesTitle')}</h2>
             {hasCategories && !addingExpense && (
               <button type="button" className="button" onClick={() => setAddingExpense(true)}>
-                <Icon name="plus" size={16} /> Adicionar gasto
+                <Icon name="plus" size={16} /> {t('dashboard.addExpense')}
               </button>
             )}
           </div>
 
           {!hasCategories && (
-            <p className="status status--warning">
-              Nenhuma categoria encontrada para a sua conta. Rode o script
-              database/migrations/0002_backfill_default_categories.sql no SQL Editor do Supabase
-              (veja o database/README.md) e recarregue a página.
-            </p>
+            <p className="status status--warning">{t('dashboard.noCategories')}</p>
           )}
 
           {addingExpense && (
@@ -247,7 +244,7 @@ function MonthSummary({ month, year, current, onChangeMonth, categoriesState }) 
           <div className="dashboard-grid">
             <div>
               <div className="section-header">
-                <h2>Gastos por categoria</h2>
+                <h2>{t('dashboard.byCategory')}</h2>
               </div>
               <div className="chart-panel">
                 <CategoryChart expenses={expensesState.expenses} />
@@ -256,10 +253,10 @@ function MonthSummary({ month, year, current, onChangeMonth, categoriesState }) 
 
             <div>
               <div className="section-header">
-                <h2>Caixinhas do mês</h2>
+                <h2>{t('dashboard.budgets')}</h2>
                 {hasCategories && categoriesWithoutBudget.length > 0 && !addingBudget && (
                   <button type="button" className="button button--ghost" onClick={() => setAddingBudget(true)}>
-                    <Icon name="plus" size={16} /> Nova caixinha
+                    <Icon name="plus" size={16} /> {t('dashboard.newBudget')}
                   </button>
                 )}
               </div>

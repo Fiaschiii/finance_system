@@ -1,3 +1,5 @@
+import { t } from '../i18n/index.jsx'
+
 // Carrega o script do Cloudflare Turnstile uma vez só, sob demanda (só nas
 // telas que têm CAPTCHA). Devolve o objeto window.turnstile.
 export const TURNSTILE_SCRIPT = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit'
@@ -12,10 +14,10 @@ export function loadTurnstile() {
     const script = document.createElement('script')
     script.src = TURNSTILE_SCRIPT
     script.async = true
-    script.onload = () => (window.turnstile ? resolve(window.turnstile) : reject(new Error('Turnstile indisponível')))
+    script.onload = () => (window.turnstile ? resolve(window.turnstile) : reject(new Error(t('captcha.loadError'))))
     script.onerror = () => {
       loading = null // deixa tentar de novo depois
-      reject(new Error('Não consegui carregar a verificação anti-robô. Confira a internet e recarregue a página.'))
+      reject(new Error(t('captcha.loadError')))
     }
     document.head.appendChild(script)
   })

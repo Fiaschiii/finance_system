@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { formatBRL, formatCompactBRL, subtractMoney } from '../utils/currency.js'
 import { formatMonthYear, formatShortMonthYear } from '../utils/date.js'
+import { useI18n } from '../i18n/index.jsx'
 
 const MAX_MONTHS = 12
 const HEIGHT = 260
 const MARGIN = { top: 12, right: 8, bottom: 28, left: 64 }
 const SERIES = [
-  { key: 'salary', label: 'Salário', className: 'monthly-chart__bar--salary' },
-  { key: 'totalSpent', label: 'Gastos', className: 'monthly-chart__bar--spent' },
+  { key: 'salary', labelKey: 'chart.salary', className: 'monthly-chart__bar--salary' },
+  { key: 'totalSpent', labelKey: 'chart.spent', className: 'monthly-chart__bar--spent' },
 ]
 
 // Largura do contêiner, atualizada quando a janela muda de tamanho. Assim o
@@ -47,6 +48,7 @@ function barPath(x, y, width, height, radius) {
 // Colunas agrupadas: salário × gastos dos últimos 12 meses, em ordem
 // cronológica. Passar o mouse (ou focar com Tab) num mês mostra os valores.
 function MonthlyChart({ history }) {
+  const { t } = useI18n()
   const [containerRef, width] = useWidth()
   const [activeIndex, setActiveIndex] = useState(null)
 
@@ -78,7 +80,7 @@ function MonthlyChart({ history }) {
         {SERIES.map((series) => (
           <li key={series.key}>
             <span className={`chart-legend__swatch ${series.className}`} aria-hidden="true" />
-            {series.label}
+            {t(series.labelKey)}
           </li>
         ))}
       </ul>
@@ -90,7 +92,7 @@ function MonthlyChart({ history }) {
             height={HEIGHT}
             viewBox={`0 0 ${width} ${HEIGHT}`}
             role="img"
-            aria-label={`Salário e gastos dos últimos ${months.length} meses. Os valores exatos estão na tabela abaixo.`}
+            aria-label={t('chart.aria', { count: months.length })}
             onMouseLeave={() => setActiveIndex(null)}
           >
             {ticks.map((tick) => (
@@ -116,7 +118,11 @@ function MonthlyChart({ history }) {
                   key={month.id}
                   tabIndex={0}
                   className="monthly-chart__group"
-                  aria-label={`${formatMonthYear(month.month, month.year)}: salário ${formatBRL(month.salary)}, gastos ${formatBRL(month.totalSpent)}`}
+                  aria-label={t('chart.groupAria', {
+                    month: formatMonthYear(month.month, month.year),
+                    salary: formatBRL(month.salary),
+                    spent: formatBRL(month.totalSpent),
+                  })}
                   onMouseEnter={() => setActiveIndex(index)}
                   onFocus={() => setActiveIndex(index)}
                   onBlur={() => setActiveIndex(null)}
@@ -158,12 +164,12 @@ function MonthlyChart({ history }) {
             {SERIES.map((series) => (
               <span key={series.key} className="chart-tooltip__row">
                 <span className={`chart-legend__swatch ${series.className}`} aria-hidden="true" />
-                {series.label}
+                {t(series.labelKey)}
                 <span className="chart-tooltip__value">{formatBRL(active[series.key])}</span>
               </span>
             ))}
             <span className="chart-tooltip__row chart-tooltip__row--total">
-              Saldo
+              {t('chart.balance')}
               <span
                 className={`chart-tooltip__value${active.salary - active.totalSpent < 0 ? ' num--negative' : ''}`}
               >

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { useIdleTimer } from '../hooks/useIdleTimer.js'
 import { IDLE_TIMEOUT_MINUTES, IDLE_WARNING_SECONDS } from '../config/security.js'
+import { Trans, useI18n } from '../i18n/index.jsx'
 
 // Avisa a tela de login do motivo da saída (sobrevive à troca de página).
 export const LOGOUT_REASON_KEY = 'motivo-saida'
@@ -14,6 +15,7 @@ function IdleLogout() {
   const { user, signOut } = useAuth()
   const navigate = useNavigate()
   const buttonRef = useRef(null)
+  const { t } = useI18n()
 
   const { secondsLeft, stayActive } = useIdleTimer({
     enabled: Boolean(user),
@@ -52,16 +54,16 @@ function IdleLogout() {
         aria-labelledby="idle-title"
         aria-describedby="idle-text"
       >
-        <h2 id="idle-title">Você ainda está aí?</h2>
+        <h2 id="idle-title">{t('idle.title')}</h2>
         <p id="idle-text">
-          Por segurança, a sessão será encerrada em <strong>{secondsLeft} s</strong> por falta de uso.
+          <Trans k="idle.text" seconds={<strong>{secondsLeft} s</strong>} />
         </p>
         <div className="form-actions">
           <button ref={buttonRef} type="button" className="button" onClick={stayActive}>
-            Continuar conectado
+            {t('idle.stay')}
           </button>
           <button type="button" className="button button--ghost" onClick={handleLeave}>
-            Sair agora
+            {t('idle.leave')}
           </button>
         </div>
       </div>

@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { formatInputBRL, parseBRL } from '../utils/currency.js'
+import { useI18n } from '../i18n/index.jsx'
 
 // Formulário de caixinha, usado para criar e para editar.
 // Ao criar, escolhe a categoria; ao editar (initialValues presente), só o
 // limite pode mudar — a categoria e o mês identificam a caixinha.
 function BudgetForm({ categories, initialValues, onSave, onCancel }) {
+  const { t } = useI18n()
   const isEditing = Boolean(initialValues)
   const [categoryId, setCategoryId] = useState(initialValues?.category_id ?? '')
   const [limit, setLimit] = useState(initialValues ? formatInputBRL(initialValues.limit_amount) : '')
@@ -16,13 +18,13 @@ function BudgetForm({ categories, initialValues, onSave, onCancel }) {
     setError('')
 
     if (!isEditing && !categoryId) {
-      setError('Escolha uma categoria.')
+      setError(t('budget.errCategory'))
       return
     }
 
     const value = parseBRL(limit)
     if (Number.isNaN(value) || value < 0) {
-      setError('Informe um limite válido, por exemplo 300,00.')
+      setError(t('budget.errLimit', { example: t('money.exampleLimit') }))
       return
     }
 
@@ -42,9 +44,9 @@ function BudgetForm({ categories, initialValues, onSave, onCancel }) {
     <form className="budget-form" onSubmit={handleSubmit}>
       {!isEditing && (
         <label>
-          Categoria
+          {t('budget.category')}
           <select value={categoryId} onChange={(event) => setCategoryId(event.target.value)} autoFocus>
-            <option value="">Selecionar categoria</option>
+            <option value="">{t('budget.selectCategory')}</option>
             {categories.map((category) => (
               <option key={category.id} value={category.id}>
                 {category.name}
@@ -55,13 +57,13 @@ function BudgetForm({ categories, initialValues, onSave, onCancel }) {
       )}
 
       <label>
-        Limite mensal
+        {t('budget.limit')}
         <span className="salary-input">
           <span aria-hidden="true">R$</span>
           <input
             type="text"
             inputMode="decimal"
-            placeholder="300,00"
+            placeholder={t('money.exampleLimit')}
             value={limit}
             onChange={(event) => setLimit(event.target.value)}
             autoFocus={isEditing}
@@ -73,10 +75,10 @@ function BudgetForm({ categories, initialValues, onSave, onCancel }) {
 
       <div className="form-actions">
         <button type="submit" className="button" disabled={saving}>
-          {saving ? 'Salvando…' : 'Salvar caixinha'}
+          {saving ? t('common.saving') : t('budget.submit')}
         </button>
         <button type="button" className="button button--ghost" onClick={onCancel} disabled={saving}>
-          Cancelar
+          {t('common.cancel')}
         </button>
       </div>
     </form>

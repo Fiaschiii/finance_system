@@ -1,4 +1,5 @@
 import { supabase } from './supabase.js'
+import { getLanguage, t } from '../i18n/index.jsx'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
@@ -18,6 +19,8 @@ export function formatWait(seconds) {
 async function request(path, options) {
   const headers = {
     'Content-Type': 'application/json',
+    // O backend devolve as mensagens de erro neste idioma.
+    'Accept-Language': getLanguage(),
     ...(await authHeaders()),
     ...options.headers,
   }
@@ -26,19 +29,17 @@ async function request(path, options) {
   try {
     response = await fetch(`${API_URL}${path}`, { ...options, headers })
   } catch {
-    throw new Error(
-      `Não consegui falar com o backend em ${API_URL}. Confira se ele está rodando (npm run dev na pasta backend).`
-    )
+    throw new Error(t('api.backendDown', { url: API_URL }))
   }
 
   const body = await response.json().catch(() => null)
 
   if (!response.ok) {
-    let base = body?.error || `Erro ${response.status}`
+    let base = body?.error || t('api.errorStatus', { status: response.status })
     const retryAfter = Number(body?.retryAfter) || null
     // Limite de requisições (Etapa 17): diz quanto tempo esperar.
     if (response.status === 429 && retryAfter) {
-      base = `${base} (liberado em ${formatWait(retryAfter)})`
+      base = t('api.retryIn', { message: base, wait: formatWait(retryAfter) })
     }
     const error = new Error(body?.detail ? `${base} (${body.detail})` : base)
     error.status = response.status

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useToast } from '../hooks/useToast.jsx'
 import BudgetForm from './BudgetForm.jsx'
 import { formatBRL } from '../utils/currency.js'
+import { useI18n } from '../i18n/index.jsx'
 
 // Lista de caixinhas em cartões, cada um com uma barra de progresso do gasto
 // em relação ao limite. Editar troca o cartão pelo formulário (só o limite
@@ -12,11 +13,12 @@ function BudgetList({ budgets, onUpdate, onDelete }) {
   const [busyId, setBusyId] = useState(null)
   const [actionError, setActionError] = useState('')
   const toast = useToast()
+  const { t } = useI18n()
 
   async function handleUpdate(id, values) {
     await onUpdate(id, values)
     setEditingId(null)
-    toast('Caixinha atualizada.')
+    toast(t('toast.budgetUpdated'))
   }
 
   async function handleDelete(id) {
@@ -25,7 +27,7 @@ function BudgetList({ budgets, onUpdate, onDelete }) {
     try {
       await onDelete(id)
       setConfirmingId(null)
-      toast('Caixinha excluída.')
+      toast(t('toast.budgetDeleted'))
     } catch (err) {
       setActionError(err.message)
     } finally {
@@ -34,7 +36,7 @@ function BudgetList({ budgets, onUpdate, onDelete }) {
   }
 
   if (budgets.length === 0) {
-    return <p className="empty-state">Nenhuma caixinha criada para este mês ainda.</p>
+    return <p className="empty-state">{t('budget.empty')}</p>
   }
 
   return (
@@ -70,14 +72,14 @@ function BudgetList({ budgets, onUpdate, onDelete }) {
 
                 {confirmingId === budget.id ? (
                   <span className="row-actions">
-                    <span>Excluir?</span>
+                    <span>{t('common.deleteConfirm')}</span>
                     <button
                       type="button"
                       className="link-button link-button--danger"
                       onClick={() => handleDelete(budget.id)}
                       disabled={busyId === budget.id}
                     >
-                      Sim, excluir
+                      {t('common.yesDelete')}
                     </button>
                     <button
                       type="button"
@@ -85,7 +87,7 @@ function BudgetList({ budgets, onUpdate, onDelete }) {
                       onClick={() => setConfirmingId(null)}
                       disabled={busyId === budget.id}
                     >
-                      Cancelar
+                      {t('common.cancel')}
                     </button>
                   </span>
                 ) : (
@@ -93,24 +95,24 @@ function BudgetList({ budgets, onUpdate, onDelete }) {
                     <button
                       type="button"
                       className="link-button"
-                      aria-label={`Editar caixinha de ${budget.category.name}`}
+                      aria-label={t('budget.editLabel', { name: budget.category.name })}
                       onClick={() => {
                         setConfirmingId(null)
                         setEditingId(budget.id)
                       }}
                     >
-                      Editar
+                      {t('common.edit')}
                     </button>
                     <button
                       type="button"
                       className="link-button link-button--danger"
-                      aria-label={`Excluir caixinha de ${budget.category.name}`}
+                      aria-label={t('budget.deleteLabel', { name: budget.category.name })}
                       onClick={() => {
                         setEditingId(null)
                         setConfirmingId(budget.id)
                       }}
                     >
-                      Excluir
+                      {t('common.delete')}
                     </button>
                   </span>
                 )}
@@ -124,7 +126,7 @@ function BudgetList({ budgets, onUpdate, onDelete }) {
               </div>
 
               <p className={`budget-list__amounts${over ? ' budget-list__amounts--over' : ''}`}>
-                {formatBRL(budget.spent)} de {formatBRL(budget.limit_amount)}
+                {t('budget.amounts', { spent: formatBRL(budget.spent), limit: formatBRL(budget.limit_amount) })}
               </p>
             </li>
           )

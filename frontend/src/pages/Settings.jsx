@@ -1,53 +1,47 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useCategories } from '../hooks/useCategories.js'
 import { useToast } from '../hooks/useToast.jsx'
 import { usePageTitle } from '../hooks/usePageTitle.js'
 import { useRouteReady } from '../hooks/useRouteLoading.jsx'
-import { THEMES, getTheme, setTheme } from '../utils/theme.js'
+import { Trans, useI18n } from '../i18n/index.jsx'
 import CategoryForm from '../components/CategoryForm.jsx'
 import CategoryList from '../components/CategoryList.jsx'
 import SupabaseStatus from '../components/SupabaseStatus.jsx'
-import MfaSettings from '../components/MfaSettings.jsx'
 import Icon from '../components/Icon.jsx'
 import { SkeletonRows, LoadingLabel } from '../components/Skeleton.jsx'
 
+// Configurações do sistema (categorias e conexão). O que é da CONTA (senha,
+// verificação em duas etapas, sessões, tema, idioma) fica em Minha conta.
 function Settings() {
-  usePageTitle('Configurações')
+  usePageTitle('settings.title')
+  const { t } = useI18n()
   const toast = useToast()
   const { categories, loading, error, addCategory, updateCategory, deleteCategory, reload } =
     useCategories()
   const [addingCategory, setAddingCategory] = useState(false)
   useRouteReady(!loading)
-  const [theme, setThemeState] = useState(getTheme)
 
   async function handleAddCategory(values) {
     await addCategory(values)
     setAddingCategory(false)
-    toast('Categoria criada.')
-  }
-
-  function handleThemeChange(value) {
-    setTheme(value)
-    setThemeState(value)
+    toast(t('toast.categoryCreated'))
   }
 
   return (
     <section className="page">
-      <h1>Configurações</h1>
+      <h1>{t('settings.title')}</h1>
 
       <div className="settings-section">
         <div className="section-header">
-          <h2>Categorias</h2>
+          <h2>{t('settings.categories')}</h2>
           {!loading && !error && !addingCategory && (
             <button type="button" className="button" onClick={() => setAddingCategory(true)}>
-              <Icon name="plus" size={16} /> Nova categoria
+              <Icon name="plus" size={16} /> {t('settings.newCategory')}
             </button>
           )}
         </div>
-        <p>
-          As categorias organizam seus gastos e são a base das caixinhas. Uma categoria que já tem gastos
-          não pode ser excluída, mas pode ser renomeada.
-        </p>
+        <p>{t('settings.categoriesIntro')}</p>
 
         {loading && (
           <>
@@ -60,7 +54,7 @@ function Settings() {
           <div className="dashboard-panel">
             <p className="status status--error">{error}</p>
             <button type="button" className="button button--ghost" onClick={reload}>
-              Tentar de novo
+              {t('common.retry')}
             </button>
           </div>
         )}
@@ -76,32 +70,15 @@ function Settings() {
       </div>
 
       <div className="settings-section">
-        <MfaSettings />
+        <h2>{t('settings.accountTitle')}</h2>
+        <p>
+          <Trans k="settings.accountText" link={<Link to="/profile">{t('nav.account')}</Link>} />
+        </p>
       </div>
 
       <div className="settings-section">
-        <fieldset className="theme-options">
-          <legend>
-            <h2>Aparência</h2>
-          </legend>
-          {THEMES.map((option) => (
-            <label key={option.value} className="radio-option">
-              <input
-                type="radio"
-                name="theme"
-                value={option.value}
-                checked={theme === option.value}
-                onChange={() => handleThemeChange(option.value)}
-              />
-              {option.label}
-            </label>
-          ))}
-        </fieldset>
-      </div>
-
-      <div className="settings-section">
-        <h2>Conexão</h2>
-        <p>Se algo não carregar, confira aqui se o sistema está falando com o servidor e com o banco.</p>
+        <h2>{t('settings.connection')}</h2>
+        <p>{t('settings.connectionIntro')}</p>
         <SupabaseStatus />
       </div>
     </section>

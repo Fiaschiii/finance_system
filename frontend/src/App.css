@@ -2070,3 +2070,394 @@ path.monthly-chart__bar--spent {
 .auth-links a svg {
   flex-shrink: 0;
 }
+
+/* ============================================================
+   Etapa 18: Minha conta (perfil), avatar, abas, sessões e avisos.
+   Só usa os tokens de cor do index.css: o tema escuro vem junto.
+   ============================================================ */
+
+/* ---------- Avatar ---------- */
+
+.avatar {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--color-accent-soft);
+  box-shadow: 0 0 0 1px var(--color-line);
+}
+
+.avatar--initials {
+  color: var(--color-accent-dark);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  user-select: none;
+}
+
+/* ---------- Cabeçalho: link para Minha conta e troca de idioma ---------- */
+
+.app-header__nav a.app-header__profile {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 4px 10px 4px 4px;
+  border-radius: 999px;
+}
+
+.app-header__profile .app-header__user {
+  color: inherit;
+}
+
+.app-header__language {
+  padding: 6px 10px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-ink-muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+.app-header__language:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent-dark);
+}
+
+/* ---------- Abas ---------- */
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin: 8px 0 4px;
+  border-bottom: 1px solid var(--color-line);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tabs__tab {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: -1px;
+  padding: 10px 14px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--color-ink-muted);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 150ms ease, border-color 150ms ease;
+}
+
+.tabs__tab:hover {
+  color: var(--color-ink);
+}
+
+.tabs__tab--active {
+  border-bottom-color: var(--color-accent);
+  color: var(--color-accent-dark);
+}
+
+.tabs__tab:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -2px;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+}
+
+.tabs__panel > .settings-section:first-child {
+  margin-top: 20px;
+}
+
+/* ---------- Formulários do perfil ---------- */
+
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  max-width: 420px;
+  margin-top: 16px;
+}
+
+.profile-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--color-ink);
+}
+
+.profile-form input {
+  padding: 10px 12px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  font: inherit;
+  font-size: 1rem;
+  color: var(--color-ink);
+}
+
+.profile-form input:hover {
+  border-color: var(--color-accent);
+}
+
+.profile-form input:focus {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+.field-hint {
+  color: var(--color-ink-muted);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.profile-facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 4px 16px;
+  margin: 12px 0;
+  font-size: 0.95rem;
+}
+
+.profile-facts dt {
+  color: var(--color-ink-muted);
+}
+
+.profile-facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-weight: 500;
+}
+
+/* Foto + botões ao lado */
+.avatar-editor {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-top: 16px;
+}
+
+.avatar-editor__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+}
+
+.avatar-editor__label {
+  font-weight: 600;
+}
+
+/* Vários grupos de opções na mesma seção (Preferências) */
+.theme-options + .theme-options {
+  margin-top: 28px;
+}
+
+.theme-options .field-hint {
+  margin: -4px 0 4px;
+}
+
+/* ---------- Sessões ativas ---------- */
+
+.session-list {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+}
+
+.session-list__item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius);
+}
+
+.session-list__item + .session-list__item {
+  margin-top: 8px;
+}
+
+.session-list__item--current {
+  border-color: var(--color-accent);
+  background: var(--color-accent-soft);
+}
+
+.session-list__icon {
+  flex: none;
+  font-size: 1.4rem;
+}
+
+.session-list__info {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.session-list__meta {
+  color: var(--color-ink-muted);
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+
+.badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font-size: 0.72rem;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+/* ---------- Avisos do Resumo ---------- */
+
+.dashboard-alerts {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.dashboard-alerts .status {
+  max-width: 100%;
+}
+
+.dashboard-alerts .link-button {
+  font-size: inherit;
+}
+
+.dashboard-alerts__manage {
+  color: var(--color-ink-muted);
+  font-size: 0.82rem;
+}
+
+@media (max-width: 560px) {
+  .avatar-editor {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .session-list__item {
+    flex-wrap: wrap;
+  }
+
+  .session-list__item .row-actions,
+  .session-list__item > .action-button {
+    margin-left: auto;
+  }
+}
+
+/* ---------- Abas de Minha conta: ícones animados ao passar o mouse ----------
+   Cada ícone tem um movimento ligado ao que a aba é. A animação roda uma vez
+   ao passar o mouse (ou ao chegar pelo teclado, com Tab). Quem pede menos
+   movimento no sistema fica sem ela (regra prefers-reduced-motion no index.css). */
+
+.tabs__icon {
+  transform-origin: 50% 60%;
+}
+
+/* Dados cadastrais: a pessoa dá um "pulinho", como quem acena. */
+.tabs__tab:hover .tabs__icon--dados,
+.tabs__tab:focus-visible .tabs__icon--dados {
+  animation: tab-icon-hop 520ms cubic-bezier(0.3, 0.7, 0.4, 1.4);
+}
+
+/* Segurança: o escudo balança, como um cadeado sendo conferido. */
+.tabs__tab:hover .tabs__icon--seguranca,
+.tabs__tab:focus-visible .tabs__icon--seguranca {
+  animation: tab-icon-wiggle 560ms ease-in-out;
+}
+
+/* Preferências: os controles deslizam para os lados, como num ajuste. */
+.tabs__tab:hover .tabs__icon--preferencias,
+.tabs__tab:focus-visible .tabs__icon--preferencias {
+  animation: tab-icon-slide 600ms ease-in-out;
+}
+
+@keyframes tab-icon-hop {
+  0%, 100% { transform: translateY(0) scale(1); }
+  35% { transform: translateY(-3px) scale(1.12); }
+  65% { transform: translateY(0) scale(0.96); }
+}
+
+@keyframes tab-icon-wiggle {
+  0%, 100% { transform: rotate(0) scale(1); }
+  20% { transform: rotate(-12deg) scale(1.1); }
+  40% { transform: rotate(10deg) scale(1.1); }
+  60% { transform: rotate(-6deg) scale(1.05); }
+  80% { transform: rotate(3deg); }
+}
+
+@keyframes tab-icon-slide {
+  0%, 100% { transform: translateX(0) scaleX(1); }
+  30% { transform: translateX(2px) scaleX(-1); }
+  60% { transform: translateX(-2px) scaleX(-1); }
+  85% { transform: translateX(0) scaleX(1); }
+}
+
+/* ---------- Menu do cabeçalho: ícones animados ao passar o mouse ----------
+   Mesma ideia das abas de Minha conta: um movimento por ícone, uma vez a
+   cada passada do mouse (ou foco pelo teclado). Sem animação para quem pede
+   menos movimento (prefers-reduced-motion no index.css). */
+
+/* Resumo: as barras do gráfico "crescem" a partir da base. */
+.app-header__nav a:hover .nav-icon--summary,
+.app-header__nav a:focus-visible .nav-icon--summary {
+  transform-origin: 50% 100%;
+  animation: nav-icon-grow 560ms cubic-bezier(0.3, 0.7, 0.4, 1.3);
+}
+
+/* Histórico: o relógio volta no tempo (gira ao contrário). */
+.app-header__nav a:hover .nav-icon--history,
+.app-header__nav a:focus-visible .nav-icon--history {
+  animation: nav-icon-rewind 700ms ease-in-out;
+}
+
+/* Configurações: a engrenagem gira, como se estivesse ajustando algo. */
+.app-header__nav a:hover .nav-icon--settings,
+.app-header__nav a:focus-visible .nav-icon--settings {
+  animation: nav-icon-spin 700ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes nav-icon-grow {
+  0%, 100% { transform: scaleY(1); }
+  30% { transform: scaleY(0.6); }
+  65% { transform: scaleY(1.18); }
+}
+
+@keyframes nav-icon-rewind {
+  from { transform: rotate(0); }
+  to { transform: rotate(-360deg); }
+}
+
+@keyframes nav-icon-spin {
+  from { transform: rotate(0); }
+  to { transform: rotate(180deg); }
+}
+
+/* Sair: a seta "sai pela porta" e volta. */
+.app-header__logout:hover .nav-icon--signout,
+.app-header__logout:focus-visible .nav-icon--signout {
+  animation: nav-icon-exit 600ms ease-in-out;
+}
+
+@keyframes nav-icon-exit {
+  0%, 100% { transform: translateX(0); opacity: 1; }
+  45% { transform: translateX(4px); opacity: 0; }
+  50% { transform: translateX(-3px); opacity: 0; }
+}

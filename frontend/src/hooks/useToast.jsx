@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
 import Icon from '../components/Icon.jsx'
+import { useI18n } from '../i18n/index.jsx'
 
 // Avisos rápidos no canto da tela ("Gasto adicionado."), que somem sozinhos.
 // Uso: const toast = useToast(); toast('Gasto salvo.') ou toast('Falhou', 'error')
@@ -11,6 +12,7 @@ let nextId = 1
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([])
   const timers = useRef(new Map())
+  const { t } = useI18n()
 
   const dismiss = useCallback((id) => {
     clearTimeout(timers.current.get(id))
@@ -42,7 +44,7 @@ export function ToastProvider({ children }) {
           <div key={toast.id} className={`toast toast--${toast.tone}`}>
             <Icon name={toast.tone === 'error' ? 'alert' : 'check'} />
             <span>{toast.message}</span>
-            <button type="button" className="toast__close" onClick={() => dismiss(toast.id)} aria-label="Fechar aviso">
+            <button type="button" className="toast__close" onClick={() => dismiss(toast.id)} aria-label={t('common.closeToast')}>
               <Icon name="close" size={16} />
             </button>
           </div>

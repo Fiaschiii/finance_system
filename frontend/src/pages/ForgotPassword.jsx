@@ -6,9 +6,11 @@ import { usePageTitle } from '../hooks/usePageTitle.js'
 import { useRouteReady } from '../hooks/useRouteLoading.jsx'
 import { useCaptcha } from '../hooks/useCaptcha.jsx'
 import { ArrowLeftIcon } from '@primer/octicons-react'
+import { useI18n } from '../i18n/index.jsx'
 
 function ForgotPassword() {
-  usePageTitle('Esqueci minha senha')
+  usePageTitle('forgot.title')
+  const { t } = useI18n()
   useRouteReady(true)
   const { resetPassword } = useAuth()
   const [email, setEmail] = useState('')
@@ -25,7 +27,7 @@ function ForgotPassword() {
     setLoading(false)
     captcha.reset()
     if (error) {
-      setError(translateAuthError(error.message))
+      setError(translateAuthError(error))
       return
     }
     setSent(true)
@@ -34,28 +36,28 @@ function ForgotPassword() {
   if (sent) {
     return (
       <section className="page page--auth">
-        <h1>Confira seu e-mail</h1>
-        <p>Se {email} estiver cadastrado, enviamos um link para redefinir a senha.</p>
-        <p className="auth-links"><Link to="/login"><ArrowLeftIcon size={16} /> Voltar para o login</Link></p>
+        <h1>{t('forgot.sentTitle')}</h1>
+        <p>{t('forgot.sent', { email })}</p>
+        <p className="auth-links"><Link to="/login"><ArrowLeftIcon size={16} /> {t('forgot.back')}</Link></p>
       </section>
     )
   }
 
   return (
     <section className="page page--auth">
-      <h1>Esqueci minha senha</h1>
+      <h1>{t('forgot.title')}</h1>
       <form onSubmit={handleSubmit} className="auth-form">
         <label>
-          E-mail
+          {t('auth.email')}
           <input type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
         </label>
         {captcha.widget}
         {error && <p className="status status--error">{error}</p>}
         <button type="submit" disabled={loading || !captcha.ready}>
-          {loading ? 'Enviando…' : 'Enviar link de recuperação'}
+          {loading ? t('forgot.submitting') : t('forgot.submit')}
         </button>
       </form>
-      <p className="auth-links"><Link to="/login"><ArrowLeftIcon size={16} /> Voltar para o login</Link></p>
+      <p className="auth-links"><Link to="/login"><ArrowLeftIcon size={16} /> {t('forgot.back')}</Link></p>
     </section>
   )
 }

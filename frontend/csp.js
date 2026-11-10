@@ -35,8 +35,9 @@ export function buildCsp({ supabaseUrl, apiUrl, captcha, scriptHashes = [] }) {
     'default-src': ["'self'"],
     'script-src': ["'self'", ...scriptHashes, captcha && TURNSTILE],
     'style-src': ["'self'"],
-    // data: é o QR Code do app autenticador.
-    'img-src': ["'self'", 'data:'],
+    // data: é o QR Code do app autenticador; o Supabase, as fotos de perfil
+    // (link assinado e temporário do Storage).
+    'img-src': ["'self'", 'data:', supabase],
     'font-src': ["'self'"],
     'connect-src': ["'self'", supabase, api],
     'frame-src': [captcha ? TURNSTILE : "'none'"],

@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import { formatInputBRL, parseBRL } from '../utils/currency.js'
 import { EXPENSE_TYPES } from '../utils/expenses.js'
+import { useI18n } from '../i18n/index.jsx'
 
 // Formulário de gasto, usado para criar e para editar.
 // - dateRange: primeiro/último dia do mês exibido (o gasto fica dentro dele)
 // - defaultDate: data sugerida ao criar
 // - initialValues: se vier, é edição e os campos começam preenchidos
 function ExpenseForm({ categories, dateRange, defaultDate, monthLabel, initialValues, onSave, onCancel }) {
+  const { t } = useI18n()
   const [description, setDescription] = useState(initialValues?.description ?? '')
   const [amount, setAmount] = useState(initialValues ? formatInputBRL(initialValues.amount) : '')
   const [categoryId, setCategoryId] = useState(initialValues?.category_id ?? '')
@@ -18,16 +20,16 @@ function ExpenseForm({ categories, dateRange, defaultDate, monthLabel, initialVa
 
   // Devolve a primeira mensagem de erro, ou null se está tudo certo.
   function validate() {
-    if (!description.trim()) return 'Informe a descrição.'
+    if (!description.trim()) return t('expense.errDescription')
 
     const value = parseBRL(amount)
-    if (Number.isNaN(value)) return 'Informe um valor válido, por exemplo 55,00.'
-    if (value <= 0) return 'O valor precisa ser maior que zero.'
+    if (Number.isNaN(value)) return t('expense.errAmount', { example: t('money.exampleExpense') })
+    if (value <= 0) return t('expense.errAmountZero')
 
-    if (!categoryId) return 'Escolha uma categoria.'
+    if (!categoryId) return t('expense.errCategory')
 
     if (!date || date < dateRange.min || date > dateRange.max) {
-      return `Escolha uma data dentro de ${monthLabel}.`
+      return t('expense.errDate', { month: monthLabel })
     }
     return null
   }
@@ -62,7 +64,7 @@ function ExpenseForm({ categories, dateRange, defaultDate, monthLabel, initialVa
   return (
     <form className="expense-form" onSubmit={handleSubmit} noValidate>
       <label className="span-2">
-        Descrição
+        {t('expense.description')}
         <input
           type="text"
           value={description}
@@ -73,13 +75,13 @@ function ExpenseForm({ categories, dateRange, defaultDate, monthLabel, initialVa
       </label>
 
       <label>
-        Valor
+        {t('expense.amount')}
         <span className="salary-input">
           <span aria-hidden="true">R$</span>
           <input
             type="text"
             inputMode="decimal"
-            placeholder="0,00"
+            placeholder={t('money.examplePlaceholder')}
             value={amount}
             onChange={(event) => setAmount(event.target.value)}
           />
@@ -87,7 +89,7 @@ function ExpenseForm({ categories, dateRange, defaultDate, monthLabel, initialVa
       </label>
 
       <label>
-        Data
+        {t('expense.date')}
         <input
           type="date"
           value={date}
@@ -98,9 +100,9 @@ function ExpenseForm({ categories, dateRange, defaultDate, monthLabel, initialVa
       </label>
 
       <label>
-        Categoria
+        {t('expense.category')}
         <select value={categoryId} onChange={(event) => setCategoryId(event.target.value)}>
-          <option value="">Selecionar categoria</option>
+          <option value="">{t('expense.selectCategory')}</option>
           {categories.map((category) => (
             <option key={category.id} value={category.id}>
               {category.name}
@@ -110,7 +112,7 @@ function ExpenseForm({ categories, dateRange, defaultDate, monthLabel, initialVa
       </label>
 
       <fieldset>
-        <legend>Tipo</legend>
+        <legend>{t('expense.type')}</legend>
         <div className="radio-options">
           {EXPENSE_TYPES.map((option) => (
             <label key={option.value} className="radio-option">
@@ -121,14 +123,14 @@ function ExpenseForm({ categories, dateRange, defaultDate, monthLabel, initialVa
                 checked={type === option.value}
                 onChange={() => setType(option.value)}
               />
-              {option.label}
+              {t(option.labelKey)}
             </label>
           ))}
         </div>
       </fieldset>
 
       <label className="span-2">
-        Observação (opcional)
+        {t('expense.notes')}
         <input
           type="text"
           value={notes}
@@ -141,10 +143,10 @@ function ExpenseForm({ categories, dateRange, defaultDate, monthLabel, initialVa
 
       <div className="form-actions span-2">
         <button type="submit" className="button" disabled={saving}>
-          {saving ? 'Salvando…' : 'Salvar gasto'}
+          {saving ? t('common.saving') : t('expense.submit')}
         </button>
         <button type="button" className="button button--ghost" onClick={onCancel} disabled={saving}>
-          Cancelar
+          {t('common.cancel')}
         </button>
       </div>
     </form>
