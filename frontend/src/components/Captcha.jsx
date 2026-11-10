@@ -2,6 +2,7 @@ import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 're
 import { TURNSTILE_SITE_KEY } from '../config/security.js'
 import { loadTurnstile } from '../utils/turnstile.js'
 import { getTheme } from '../utils/theme.js'
+import { getLanguage } from '../i18n/index.jsx'
 
 // Verificação anti-robô (Cloudflare Turnstile). Quase sempre se resolve
 // sozinha, sem a pessoa clicar em nada; quando termina, chama onToken com o
@@ -30,7 +31,7 @@ const Captcha = forwardRef(function Captcha({ onToken }, ref) {
         if (cancelled || !containerRef.current) return
         widgetRef.current = turnstile.render(containerRef.current, {
           sitekey: TURNSTILE_SITE_KEY,
-          language: 'pt-br',
+          language: getLanguage() === 'en' ? 'en' : 'pt-br',
           theme: getTheme(), // 'auto', 'light' ou 'dark', igual ao do sistema
           callback: (token) => onTokenRef.current(token),
           'expired-callback': () => onTokenRef.current(''),

@@ -27,8 +27,8 @@ describe('Content-Security-Policy', () => {
     expect(directive(csp, 'form-action')).toBe("form-action 'self'")
   })
 
-  it('QR Code do app autenticador (data:) continua aparecendo', () => {
-    expect(directive(buildCsp(base), 'img-src')).toBe("img-src 'self' data:")
+  it('QR Code do app autenticador (data:) e fotos de perfil (só do Supabase)', () => {
+    expect(directive(buildCsp(base), 'img-src')).toBe("img-src 'self' data: https://abc123.supabase.co")
   })
 
   it('com CAPTCHA: libera só o Cloudflare Turnstile', () => {

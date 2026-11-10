@@ -5,6 +5,7 @@ import { translateAuthError } from '../utils/authErrors.js'
 import { formatSecret, normalizeCode, qrCodeSrc } from '../utils/mfa.js'
 import TotpCodeInput from './TotpCodeInput.jsx'
 import Icon from './Icon.jsx'
+import { Trans, useI18n } from '../i18n/index.jsx'
 
 // Configurações > Verificação em duas etapas.
 // Ativar: o Supabase gera um QR Code; a pessoa lê com o app autenticador e
@@ -13,6 +14,7 @@ import Icon from './Icon.jsx'
 function MfaSettings() {
   const { listFactors, enrollTotp, verifyTotp, unenrollFactor } = useAuth()
   const toast = useToast()
+  const { t } = useI18n()
   const [status, setStatus] = useState('loading') // loading | ready | error
   const [factor, setFactor] = useState(null) // app já confirmado
   const [enrollment, setEnrollment] = useState(null) // { id, qrCode, secret }
@@ -24,7 +26,7 @@ function MfaSettings() {
   const load = useCallback(async () => {
     const { data, error: listError } = await listFactors()
     if (listError) {
-      setError(translateAuthError(listError.message))
+      setError(translateAuthError(listError))
       setStatus('error')
       return null
     }
@@ -43,7 +45,7 @@ function MfaSettings() {
     try {
       await action()
     } catch (err) {
-      setError(translateAuthError(err.message))
+      setError(translateAuthError(err))
     } finally {
       setBusy(false)
     }
@@ -78,7 +80,7 @@ function MfaSettings() {
       }
       setEnrollment(null)
       await load()
-      toast('Verificação em duas etapas ativada.')
+      toast(t('mfa.enabledToast'))
     })
   }
 
@@ -94,24 +96,20 @@ function MfaSettings() {
       if (removeError) throw removeError
       setConfirmingDisable(false)
       await load()
-      toast('Verificação em duas etapas desativada.')
+      toast(t('mfa.disabledToast'))
     })
 
   return (
     <>
-      <h2>Verificação em duas etapas</h2>
-      <p>
-        Além da senha, o login pede um código de 6 dígitos gerado por um app autenticador no seu celular
-        (Microsoft Authenticator, Google Authenticator e parecidos). Mesmo que alguém descubra a sua senha,
-        não entra sem o celular.
-      </p>
+      <h2>{t('mfa.title')}</h2>
+      <p>{t('mfa.intro')}</p>
 
-      {status === 'loading' && <p className="status status--pending">Carregando…</p>}
+      {status === 'loading' && <p className="status status--pending">{t('common.loading')}</p>}
       {error && <p className="status status--error">{error}</p>}
 
       {status === 'error' && (
         <button type="button" className="button button--ghost" onClick={() => run(load)} disabled={busy}>
-          Tentar de novo
+          {t('common.retry')}
         </button>
       )}
 
@@ -119,18 +117,18 @@ function MfaSettings() {
         <div className="mfa-box">
           <p className="status status--ok status--with-icon">
             <Icon name="shield" />
-            <span>Ativada. O código do app é pedido sempre que você entra.</span>
+            <span>{t('mfa.enabled')}</span>
           </p>
           {confirmingDisable ? (
             <span className="row-actions">
-              <span>Desativar? O login volta a pedir só a senha.</span>
+              <span>{t('mfa.disableConfirm')}</span>
               <button
                 type="button"
                 className="action-button action-button--danger-solid"
                 onClick={disable}
                 disabled={busy}
               >
-                Sim, desativar
+                {t('mfa.disableYes')}
               </button>
               <button
                 type="button"
@@ -138,7 +136,7 @@ function MfaSettings() {
                 onClick={() => setConfirmingDisable(false)}
                 disabled={busy}
               >
-                Cancelar
+                {t('common.cancel')}
               </button>
             </span>
           ) : (
@@ -147,7 +145,7 @@ function MfaSettings() {
               className="action-button action-button--danger"
               onClick={() => setConfirmingDisable(true)}
             >
-              Desativar
+              {t('mfa.disable')}
             </button>
           )}
         </div>
@@ -155,7 +153,7 @@ function MfaSettings() {
 
       {status === 'ready' && !factor && !enrollment && (
         <button type="button" className="button" onClick={startEnrollment} disabled={busy}>
-          <Icon name="shield" size={16} /> {busy ? 'Gerando QR Code…' : 'Ativar'}
+          <Icon name="shield" size={16} /> {busy ? t('mfa.generating') : t('mfa.enable')}
         </button>
       )}
 
@@ -163,15 +161,14 @@ function MfaSettings() {
         <form className="mfa-box mfa-enroll" onSubmit={confirmEnrollment}>
           <ol className="mfa-steps">
             <li>
-              No Microsoft Authenticator, toque em <strong>+</strong> e escolha{' '}
-              <strong>Outra conta (Google, Facebook etc.)</strong>.
+              <Trans k="mfa.step1" plus={<strong>+</strong>} other={<strong>{t('mfa.step1Other')}</strong>} />
             </li>
-            <li>Aponte a câmera para o QR Code abaixo.</li>
-            <li>Digite aqui o código de 6 dígitos que aparecer no app.</li>
+            <li>{t('mfa.step2')}</li>
+            <li>{t('mfa.step3')}</li>
           </ol>
-          <img className="mfa-qr" src={qrCodeSrc(enrollment.qrCode)} alt="QR Code para cadastrar no app autenticador" />
+          <img className="mfa-qr" src={qrCodeSrc(enrollment.qrCode)} alt={t('mfa.qrAlt')} />
           <p className="mfa-secret">
-            Não consegue ler o QR Code? Escolha digitar a chave e use:{' '}
+            {t('mfa.secret')}{' '}
             <code>{formatSecret(enrollment.secret)}</code>
           </p>
           <div className="auth-form mfa-code">
@@ -179,10 +176,10 @@ function MfaSettings() {
           </div>
           <div className="form-actions">
             <button type="submit" className="button" disabled={busy || normalizeCode(code).length !== 6}>
-              {busy ? 'Confirmando…' : 'Confirmar e ativar'}
+              {busy ? t('mfa.confirming') : t('mfa.confirm')}
             </button>
             <button type="button" className="button button--ghost" onClick={cancelEnrollment} disabled={busy}>
-              Cancelar
+              {t('common.cancel')}
             </button>
           </div>
         </form>

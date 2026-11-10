@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useToast } from '../hooks/useToast.jsx'
 import CategoryForm from './CategoryForm.jsx'
+import { useI18n } from '../i18n/index.jsx'
 
 // Lista de categorias. Editar abre o formulário no lugar da linha;
 // excluir pede uma confirmação na própria linha (sem janela do navegador).
@@ -10,11 +11,12 @@ function CategoryList({ categories, onUpdate, onDelete }) {
   const [busyId, setBusyId] = useState(null)
   const [actionError, setActionError] = useState('')
   const toast = useToast()
+  const { t } = useI18n()
 
   async function handleUpdate(id, values) {
     await onUpdate(id, values)
     setEditingId(null)
-    toast('Categoria atualizada.')
+    toast(t('toast.categoryUpdated'))
   }
 
   async function handleDelete(id) {
@@ -23,7 +25,7 @@ function CategoryList({ categories, onUpdate, onDelete }) {
     try {
       await onDelete(id)
       setConfirmingId(null)
-      toast('Categoria excluída.')
+      toast(t('toast.categoryDeleted'))
     } catch (err) {
       setActionError(err.message)
     } finally {
@@ -32,7 +34,7 @@ function CategoryList({ categories, onUpdate, onDelete }) {
   }
 
   if (categories.length === 0) {
-    return <p className="empty-state">Nenhuma categoria cadastrada ainda.</p>
+    return <p className="empty-state">{t('category.empty')}</p>
   }
 
   return (
@@ -60,14 +62,14 @@ function CategoryList({ categories, onUpdate, onDelete }) {
 
               {confirmingId === category.id ? (
                 <span className="row-actions">
-                  <span>Excluir?</span>
+                  <span>{t('common.deleteConfirm')}</span>
                   <button
                     type="button"
                     className="action-button action-button--danger-solid"
                     onClick={() => handleDelete(category.id)}
                     disabled={busyId === category.id}
                   >
-                    Sim, excluir
+                    {t('common.yesDelete')}
                   </button>
                   <button
                     type="button"
@@ -75,7 +77,7 @@ function CategoryList({ categories, onUpdate, onDelete }) {
                     onClick={() => setConfirmingId(null)}
                     disabled={busyId === category.id}
                   >
-                    Cancelar
+                    {t('common.cancel')}
                   </button>
                 </span>
               ) : (
@@ -83,24 +85,24 @@ function CategoryList({ categories, onUpdate, onDelete }) {
                   <button
                     type="button"
                     className="action-button"
-                    aria-label={`Editar ${category.name}`}
+                    aria-label={t('category.editLabel', { name: category.name })}
                     onClick={() => {
                       setConfirmingId(null)
                       setEditingId(category.id)
                     }}
                   >
-                    Editar
+                    {t('common.edit')}
                   </button>
                   <button
                     type="button"
                     className="action-button action-button--danger"
-                    aria-label={`Excluir ${category.name}`}
+                    aria-label={t('category.deleteLabel', { name: category.name })}
                     onClick={() => {
                       setEditingId(null)
                       setConfirmingId(category.id)
                     }}
                   >
-                    Excluir
+                    {t('common.delete')}
                   </button>
                 </span>
               )}

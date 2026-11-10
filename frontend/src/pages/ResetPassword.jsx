@@ -4,9 +4,11 @@ import { useAuth } from '../hooks/useAuth.jsx'
 import { translateAuthError } from '../utils/authErrors.js'
 import { usePageTitle } from '../hooks/usePageTitle.js'
 import { useRouteReady } from '../hooks/useRouteLoading.jsx'
+import { useI18n } from '../i18n/index.jsx'
 
 function ResetPassword() {
-  usePageTitle('Nova senha')
+  usePageTitle('reset.pageTitle')
+  const { t } = useI18n()
   useRouteReady(true)
   const { updatePassword } = useAuth()
   const navigate = useNavigate()
@@ -21,7 +23,7 @@ function ResetPassword() {
     const { error } = await updatePassword(password)
     setLoading(false)
     if (error) {
-      setError(translateAuthError(error.message))
+      setError(translateAuthError(error))
       return
     }
     navigate('/')
@@ -29,15 +31,15 @@ function ResetPassword() {
 
   return (
     <section className="page page--auth">
-      <h1>Definir nova senha</h1>
+      <h1>{t('reset.title')}</h1>
       <form onSubmit={handleSubmit} className="auth-form">
         <label>
-          Nova senha
+          {t('reset.newPassword')}
           <input type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} />
         </label>
         {error && <p className="status status--error">{error}</p>}
         <button type="submit" disabled={loading}>
-          {loading ? 'Salvando…' : 'Salvar nova senha'}
+          {loading ? t('common.saving') : t('reset.submit')}
         </button>
       </form>
     </section>

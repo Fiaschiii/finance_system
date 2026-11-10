@@ -6,16 +6,18 @@ import { useRouteReady } from '../hooks/useRouteLoading.jsx'
 import { translateAuthError } from '../utils/authErrors.js'
 import { normalizeCode } from '../utils/mfa.js'
 import TotpCodeInput from '../components/TotpCodeInput.jsx'
+import { useI18n } from '../i18n/index.jsx'
 
 // Segundo passo do login: a senha já foi aceita, falta o código de 6 dígitos
 // do app autenticador. Só aparece para quem ativou a verificação em duas
 // etapas (em Configurações).
 function MfaVerify() {
-  usePageTitle('Verificação em duas etapas')
+  usePageTitle('mfa.title')
+  const { t } = useI18n()
   const { user, loading, mfaPending } = useAuth()
 
   if (loading) {
-    return <span className="visually-hidden">Carregando…</span>
+    return <span className="visually-hidden">{t('common.loading')}</span>
   }
   if (!user) return <Navigate to="/login" replace />
   if (!mfaPending) return <Navigate to="/" replace />
@@ -25,6 +27,7 @@ function MfaVerify() {
 
 function MfaVerifyForm() {
   const { listFactors, verifyTotp, signOut } = useAuth()
+  const { t } = useI18n()
   const navigate = useNavigate()
   const location = useLocation()
   const [factorId, setFactorId] = useState(null)
@@ -40,7 +43,7 @@ function MfaVerifyForm() {
       // data.totp traz só os apps já confirmados.
       const factor = data?.totp?.[0]
       if (listError || !factor) {
-        setError(listError ? translateAuthError(listError.message) : 'Nenhum app autenticador encontrado.')
+        setError(listError ? translateAuthError(listError) : t('mfaVerify.noFactor'))
         return
       }
       setFactorId(factor.id)
@@ -48,7 +51,7 @@ function MfaVerifyForm() {
     return () => {
       active = false
     }
-  }, [listFactors])
+  }, [listFactors, t])
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -57,7 +60,7 @@ function MfaVerifyForm() {
     const { error: verifyError } = await verifyTotp(factorId, normalizeCode(code))
     setSubmitting(false)
     if (verifyError) {
-      setError(translateAuthError(verifyError.message))
+      setError(translateAuthError(verifyError))
       setCode('')
       return
     }
@@ -71,18 +74,18 @@ function MfaVerifyForm() {
 
   return (
     <section className="page page--auth">
-      <h1>Verificação em duas etapas</h1>
-      <p>Abra o seu app autenticador (por exemplo, o Microsoft Authenticator) e digite o código de 6 dígitos de “Controle Financeiro”.</p>
+      <h1>{t('mfa.title')}</h1>
+      <p>{t('mfaVerify.intro')}</p>
       <form onSubmit={handleSubmit} className="auth-form">
         <TotpCodeInput value={code} onChange={setCode} autoFocus />
         {error && <p className="status status--error">{error}</p>}
         <button type="submit" disabled={submitting || !factorId || normalizeCode(code).length !== 6}>
-          {submitting ? 'Verificando…' : 'Verificar'}
+          {submitting ? t('mfaVerify.submitting') : t('mfaVerify.submit')}
         </button>
       </form>
       <p className="auth-links">
         <button type="button" className="link-button" onClick={handleSignOut}>
-          Entrar com outra conta
+          {t('mfaVerify.otherAccount')}
         </button>
       </p>
     </section>

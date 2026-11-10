@@ -59,3 +59,23 @@ describe('Header', () => {
     expect(screen.getByRole('button', { name: 'Sair' })).toBeInTheDocument()
   })
 })
+
+describe('Header: idioma antes de entrar', () => {
+  it('sem login, um botão troca o idioma da tela', async () => {
+    const { I18nProvider, applyLanguage } = await import('../../src/i18n/index.jsx')
+    useAuth.mockReturnValue({ user: null, mfaPending: false, signOut: vi.fn() })
+    render(
+      <I18nProvider initialLanguage="pt-BR">
+        <MemoryRouter future={ROUTER_FUTURE}>
+          <Header />
+        </MemoryRouter>
+      </I18nProvider>
+    )
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('button', { name: 'Idioma: English' }))
+    expect(screen.getByRole('link', { name: 'Sign in' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Language: Português (Brasil)' })).toHaveTextContent('PT')
+    applyLanguage('pt-BR')
+    localStorage.clear()
+  })
+})

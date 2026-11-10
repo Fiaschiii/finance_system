@@ -8,9 +8,11 @@ import { useCaptcha } from '../hooks/useCaptcha.jsx'
 import { LOGOUT_REASON_KEY } from '../components/IdleLogout.jsx'
 import { IDLE_TIMEOUT_MINUTES } from '../config/security.js'
 import { KeyIcon, PersonAddIcon } from '@primer/octicons-react'
+import { useI18n } from '../i18n/index.jsx'
 
 function Login() {
-  usePageTitle('Entrar')
+  usePageTitle('login.title')
+  const { t } = useI18n()
   useRouteReady(true)
   const { signIn } = useAuth()
   const navigate = useNavigate()
@@ -29,7 +31,7 @@ function Login() {
     setLoading(false)
     captcha.reset()
     if (error) {
-      setError(translateAuthError(error.message))
+      setError(translateAuthError(error))
       return
     }
     navigate('/')
@@ -37,30 +39,28 @@ function Login() {
 
   return (
     <section className="page page--auth">
-      <h1>Entrar</h1>
+      <h1>{t('login.title')}</h1>
       {idleNotice && (
-        <p className="status status--warning">
-          Sua sessão foi encerrada depois de {IDLE_TIMEOUT_MINUTES} minutos sem uso. Entre de novo para continuar.
-        </p>
+        <p className="status status--warning">{t('login.idle', { minutes: IDLE_TIMEOUT_MINUTES })}</p>
       )}
       <form onSubmit={handleSubmit} className="auth-form">
         <label>
-          E-mail
+          {t('auth.email')}
           <input type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
         </label>
         <label>
-          Senha
+          {t('auth.password')}
           <input type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
         </label>
         {captcha.widget}
         {error && <p className="status status--error">{error}</p>}
         <button type="submit" disabled={loading || !captcha.ready}>
-          {loading ? 'Entrando…' : 'Entrar'}
+          {loading ? t('login.submitting') : t('login.submit')}
         </button>
       </form>
       <p className="auth-links">
-        <Link to="/forgot-password"><KeyIcon size={16} /> Esqueci minha senha</Link>
-        <Link to="/register"><PersonAddIcon size={16} /> Criar conta</Link>
+        <Link to="/forgot-password"><KeyIcon size={16} /> {t('login.forgot')}</Link>
+        <Link to="/register"><PersonAddIcon size={16} /> {t('login.register')}</Link>
       </p>
     </section>
   )

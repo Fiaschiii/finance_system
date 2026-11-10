@@ -1,11 +1,23 @@
-export const MONTH_NAMES = [
-  'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
-]
+import { getLanguage, getLocale } from '../i18n/index.jsx'
 
-// (10, 2026) -> "Outubro/2026"
+const MONTH_NAMES = {
+  'pt-BR': [
+    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
+  ],
+  en: [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December',
+  ],
+}
+
+export function monthName(month, language = getLanguage()) {
+  return (MONTH_NAMES[language] ?? MONTH_NAMES['pt-BR'])[month - 1]
+}
+
+// (10, 2026) -> "Outubro/2026" (en: "October 2026")
 export function formatMonthYear(month, year) {
-  return `${MONTH_NAMES[month - 1]}/${year}`
+  return getLanguage() === 'en' ? `${monthName(month)} ${year}` : `${monthName(month)}/${year}`
 }
 
 const pad = (n) => String(n).padStart(2, '0')
@@ -22,16 +34,24 @@ export function monthRange(month, year) {
   return { min: `${year}-${pad(month)}-01`, max: `${year}-${pad(month)}-${pad(lastDay)}` }
 }
 
-// "2026-10-05" -> "05/10". Mexe na string de propósito: new Date("2026-10-05")
-// é interpretado como UTC e, no Brasil, mostraria o dia anterior.
+// "2026-10-05" -> "05/10" (en: "10/05", mês primeiro). Mexe na string de
+// propósito: new Date("2026-10-05") é interpretado como UTC e, no Brasil,
+// mostraria o dia anterior.
 export function formatDayMonth(iso) {
   const [, month, day] = iso.split('-')
-  return `${day}/${month}`
+  return getLanguage() === 'en' ? `${month}/${day}` : `${day}/${month}`
 }
 
-// (10, 2026) -> "Out/26" (rótulo curto, para eixos de gráfico)
+// (10, 2026) -> "Out/26" (en: "Oct/26"): rótulo curto, para eixos de gráfico
 export function formatShortMonthYear(month, year) {
-  return `${MONTH_NAMES[month - 1].slice(0, 3)}/${String(year).slice(-2)}`
+  return `${monthName(month).slice(0, 3)}/${String(year).slice(-2)}`
+}
+
+// Data e hora completas (ex.: último uso de uma sessão): "09/11/2026, 14:05".
+export function formatDateTime(value) {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+  return new Intl.DateTimeFormat(getLocale(), { dateStyle: 'short', timeStyle: 'short' }).format(date)
 }
 
 // Mês vizinho: (1, 2026, -1) -> { month: 12, year: 2025 }

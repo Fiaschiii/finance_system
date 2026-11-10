@@ -1,3 +1,5 @@
+import { useI18n } from '../i18n/index.jsx'
+
 // Blocos cinza que "pulsam" no lugar do conteúdo enquanto ele carrega.
 // Dão uma ideia do formato da página e evitam que tudo pule quando os dados chegam.
 export function Skeleton({ width = '100%', height = 16, radius }) {
@@ -29,5 +31,6 @@ export function SkeletonRows({ count = 4 }) {
 
 // Texto só para leitores de tela, já que os blocos em si são invisíveis para eles.
 export function LoadingLabel() {
-  return <span className="visually-hidden" role="status">Carregando…</span>
+  const { t } = useI18n()
+  return <span className="visually-hidden" role="status">{t('common.loading')}</span>
 }

@@ -43,7 +43,16 @@ export function AuthProvider({ children }) {
           redirectTo: `${window.location.origin}/reset-password`,
           ...withCaptcha(captchaToken),
         }),
-      updatePassword: (newPassword) => supabase.auth.updateUser({ password: newPassword }),
+      // nonce: código enviado por e-mail pelo reauthenticate(), quando o
+      // Supabase pede para confirmar a identidade antes de trocar a senha
+      // ("Secure password change" ligado e login antigo).
+      updatePassword: (newPassword, nonce) =>
+        supabase.auth.updateUser(nonce ? { password: newPassword, nonce } : { password: newPassword }),
+      reauthenticate: () => supabase.auth.reauthenticate(),
+      // Troca de e-mail: o Supabase manda um link de confirmação (com "Secure
+      // email change", para o e-mail antigo e o novo). Só vale depois do clique.
+      updateEmail: (email) =>
+        supabase.auth.updateUser({ email }, { emailRedirectTo: `${window.location.origin}/profile` }),
 
       // Verificação em duas etapas (app autenticador, TOTP).
       listFactors: () => supabase.auth.mfa.listFactors(),

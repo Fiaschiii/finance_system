@@ -4,6 +4,7 @@ import ExpenseForm from './ExpenseForm.jsx'
 import { formatBRL } from '../utils/currency.js'
 import { formatDayMonth } from '../utils/date.js'
 import { typeLabel } from '../utils/expenses.js'
+import { useI18n } from '../i18n/index.jsx'
 
 // Tabela de gastos do mês. Editar abre o formulário no lugar da linha;
 // excluir pede uma confirmação na própria linha (sem janela do navegador).
@@ -13,11 +14,12 @@ function ExpenseList({ expenses, categories, dateRange, monthLabel, onUpdate, on
   const [busyId, setBusyId] = useState(null)
   const [actionError, setActionError] = useState('')
   const toast = useToast()
+  const { t } = useI18n()
 
   async function handleUpdate(id, values) {
     await onUpdate(id, values)
     setEditingId(null)
-    toast('Gasto atualizado.')
+    toast(t('toast.expenseUpdated'))
   }
 
   async function handleDelete(id) {
@@ -26,7 +28,7 @@ function ExpenseList({ expenses, categories, dateRange, monthLabel, onUpdate, on
     try {
       await onDelete(id)
       setConfirmingId(null)
-      toast('Gasto excluído.')
+      toast(t('toast.expenseDeleted'))
     } catch (err) {
       setActionError(err.message)
     } finally {
@@ -35,7 +37,7 @@ function ExpenseList({ expenses, categories, dateRange, monthLabel, onUpdate, on
   }
 
   if (expenses.length === 0) {
-    return <p className="empty-state">Nenhum gasto neste mês ainda.</p>
+    return <p className="empty-state">{t('expense.empty')}</p>
   }
 
   return (
@@ -46,13 +48,13 @@ function ExpenseList({ expenses, categories, dateRange, monthLabel, onUpdate, on
         <table className="expense-table expense-table--stack">
           <thead>
             <tr>
-              <th>Data</th>
-              <th>Descrição</th>
-              <th>Categoria</th>
-              <th>Tipo</th>
-              <th className="num">Valor</th>
+              <th>{t('expense.date')}</th>
+              <th>{t('expense.description')}</th>
+              <th>{t('expense.category')}</th>
+              <th>{t('expense.type')}</th>
+              <th className="num">{t('expense.amount')}</th>
               <th>
-                <span className="visually-hidden">Ações</span>
+                <span className="visually-hidden">{t('common.actions')}</span>
               </th>
             </tr>
           </thead>
@@ -87,14 +89,14 @@ function ExpenseList({ expenses, categories, dateRange, monthLabel, onUpdate, on
                   <td className="cell-actions">
                     {confirmingId === expense.id ? (
                       <span className="row-actions">
-                        <span>Excluir?</span>
+                        <span>{t('common.deleteConfirm')}</span>
                         <button
                           type="button"
                           className="link-button link-button--danger"
                           onClick={() => handleDelete(expense.id)}
                           disabled={busyId === expense.id}
                         >
-                          Sim, excluir
+                          {t('common.yesDelete')}
                         </button>
                         <button
                           type="button"
@@ -102,7 +104,7 @@ function ExpenseList({ expenses, categories, dateRange, monthLabel, onUpdate, on
                           onClick={() => setConfirmingId(null)}
                           disabled={busyId === expense.id}
                         >
-                          Cancelar
+                          {t('common.cancel')}
                         </button>
                       </span>
                     ) : (
@@ -110,24 +112,24 @@ function ExpenseList({ expenses, categories, dateRange, monthLabel, onUpdate, on
                         <button
                           type="button"
                           className="link-button"
-                          aria-label={`Editar ${expense.description}`}
+                          aria-label={t('expense.editLabel', { name: expense.description })}
                           onClick={() => {
                             setConfirmingId(null)
                             setEditingId(expense.id)
                           }}
                         >
-                          Editar
+                          {t('common.edit')}
                         </button>
                         <button
                           type="button"
                           className="link-button link-button--danger"
-                          aria-label={`Excluir ${expense.description}`}
+                          aria-label={t('expense.deleteLabel', { name: expense.description })}
                           onClick={() => {
                             setEditingId(null)
                             setConfirmingId(expense.id)
                           }}
                         >
-                          Excluir
+                          {t('common.delete')}
                         </button>
                       </span>
                     )}

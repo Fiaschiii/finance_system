@@ -1,12 +1,17 @@
 // Tema da interface: 'auto' (segue o sistema), 'light' ou 'dark'.
-// Fica guardado no navegador (localStorage); o index.html aplica antes de a
-// página aparecer e esta função aplica quando a pessoa troca em Configurações.
+// A escolha fica no perfil (Minha conta > Preferências, gravado no banco) e
+// também no navegador (localStorage): o index.html aplica antes de a página
+// aparecer, sem "piscar" branco, e o perfil confirma depois do login.
 const STORAGE_KEY = 'tema'
 export const THEMES = [
-  { value: 'auto', label: 'Automático (igual ao sistema)' },
-  { value: 'light', label: 'Claro' },
-  { value: 'dark', label: 'Escuro' },
+  { value: 'auto', labelKey: 'theme.auto' },
+  { value: 'light', labelKey: 'theme.light' },
+  { value: 'dark', labelKey: 'theme.dark' },
 ]
+
+export function isTheme(value) {
+  return THEMES.some((theme) => theme.value === value)
+}
 
 export function getTheme() {
   try {
