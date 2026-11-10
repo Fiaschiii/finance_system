@@ -23,3 +23,11 @@ export const EXPENSE_ID = '44444444-4444-4444-8444-444444444444'
 export const BUDGET_ID = '55555555-5555-4555-8555-555555555555'
 
 export const AUTH = { Authorization: `Bearer ${VALID_TOKEN}` }
+
+// Perfil (Etapa 18): outra pessoa (alvo de quem tenta editar a conta alheia)
+// e um token com o id da sessão (aparelho) dentro, como os do Supabase.
+export const OTHER_USER_ID = '77777777-7777-4777-8777-777777777777'
+export const SESSION_ID = '88888888-8888-4888-8888-888888888888'
+export const OTHER_SESSION_ID = '99999999-9999-4999-8999-999999999999'
+export const SESSION_TOKEN = fakeJwt({ sub: USER.id, session_id: SESSION_ID, aal: 'aal1' })
+export const SESSION_AUTH = { Authorization: `Bearer ${SESSION_TOKEN}` }

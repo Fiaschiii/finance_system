@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { isMfaSatisfied } from '../utils/mfa.js'
+import { isMfaSatisfied, getTokenSessionId } from '../utils/mfa.js'
 import { fetchWithTimeout } from '../utils/fetchWithTimeout.js'
 
 const { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } = process.env
@@ -7,6 +7,7 @@ const { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } = process.env
 // Valida o token enviado pelo frontend (Authorization: Bearer <token>) e,
 // se for válido, disponibiliza:
 // - req.user: dados do usuário autenticado
+// - req.sessionId: id da sessão (aparelho) deste token
 // - req.supabase: cliente do Supabase já "logado" como esse usuário —
 //   qualquer consulta feita com ele respeita o RLS automaticamente,
 //   sem precisar da chave secret em nenhum momento.
@@ -51,6 +52,7 @@ export async function requireAuth(req, res, next) {
   }
 
   req.user = user
+  req.sessionId = getTokenSessionId(token)
   req.supabase = supabase
   next()
 }

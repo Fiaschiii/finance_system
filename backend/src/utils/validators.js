@@ -124,3 +124,57 @@ export function parseDate(value, label = 'Data') {
 
   return { iso: value, month, year }
 }
+
+// ------------------------------------------------------------
+// Perfil (Etapa 18)
+// ------------------------------------------------------------
+
+// Telefone. Aceita o que a pessoa digita ("(11) 98765-4321", "+55 11 98765-4321")
+// e devolve no formato internacional E.164 ("+5511987654321"), o mesmo que o
+// banco exige. Sem "+", número de 10 ou 11 dígitos é tratado como brasileiro
+// (DDD + número). Vazio = remover o telefone (null).
+export function parsePhone(value, label = 'Telefone') {
+  if (value === null || value === undefined) return null
+  if (typeof value !== 'string') throw new ValidationError(`${label} inválido.`)
+
+  const text = value.trim()
+  if (!text) return null
+  if (!/^\+?[\d\s().-]+$/.test(text)) throw new ValidationError(`${label} inválido.`)
+
+  const digits = text.replace(/\D/g, '')
+  let e164
+  if (text.startsWith('+')) {
+    e164 = `+${digits}`
+  } else if (digits.length === 10 || digits.length === 11) {
+    e164 = `+55${digits}`
+  } else if ((digits.length === 12 || digits.length === 13) && digits.startsWith('55')) {
+    e164 = `+${digits}`
+  } else {
+    throw new ValidationError(`${label} inválido: informe DDD e número, por exemplo (11) 98765-4321.`)
+  }
+
+  if (!/^\+[1-9]\d{7,14}$/.test(e164)) {
+    throw new ValidationError(`${label} inválido: informe DDD e número, por exemplo (11) 98765-4321.`)
+  }
+  // Celular brasileiro: 11 dígitos depois do 55, com 9 na frente do número.
+  if (e164.startsWith('+55') && ![12, 13].includes(e164.length - 1)) {
+    throw new ValidationError(`${label} inválido: informe DDD e número, por exemplo (11) 98765-4321.`)
+  }
+  return e164
+}
+
+// Um valor de uma lista fechada (idioma, tema).
+export function parseOneOf(value, allowed, label) {
+  if (!allowed.includes(value)) {
+    throw new ValidationError(`${label} inválido: use ${allowed.map((v) => `"${v}"`).join(', ')}.`)
+  }
+  return value
+}
+
+// Liga/desliga: só true ou false de verdade (nada de "sim", 1, "true").
+export function parseBoolean(value, label) {
+  if (typeof value !== 'boolean') {
+    throw new ValidationError(`${label} inválido: use true ou false.`)
+  }
+  return value
+}

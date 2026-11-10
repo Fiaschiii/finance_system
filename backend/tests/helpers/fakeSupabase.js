@@ -1,9 +1,10 @@
 // Cliente falso do Supabase para testar os serviços sem banco.
 //
-// Cada chamada a .from() consome o próximo resultado da fila `results` e
-// registra os métodos encadeados (select, eq, insert...) em `queries`, para o
+// Cada chamada a .from(), .rpc() ou .storage.from(...).<método>() consome o
+// próximo resultado da fila `results` e fica registrada em `queries`, para o
 // teste conferir o que o serviço pediu ao banco.
-const CHAIN_METHODS = ['select', 'insert', 'update', 'delete', 'eq', 'gte', 'lte', 'order', 'limit']
+const CHAIN_METHODS = ['select', 'insert', 'update', 'upsert', 'delete', 'eq', 'gte', 'lte', 'order', 'limit']
+const STORAGE_METHODS = ['upload', 'remove', 'createSignedUrl']
 
 export function fakeSupabase(...results) {
   const queue = [...results]
@@ -31,6 +32,24 @@ export function fakeSupabase(...results) {
         }
       }
       return builder
+    },
+
+    rpc(name, args) {
+      queries.push({ rpc: name, args })
+      return Promise.resolve(queue.shift() ?? { data: null, error: null })
+    },
+
+    storage: {
+      from(bucket) {
+        const api = {}
+        for (const method of STORAGE_METHODS) {
+          api[method] = (...args) => {
+            queries.push({ bucket, storage: method, args })
+            return Promise.resolve(queue.shift() ?? { data: null, error: null })
+          }
+        }
+        return api
+      },
     },
   }
 

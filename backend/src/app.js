@@ -7,8 +7,10 @@ import financeRoutes from './routes/finance.routes.js'
 import categoryRoutes from './routes/category.routes.js'
 import expenseRoutes from './routes/expense.routes.js'
 import budgetRoutes from './routes/budget.routes.js'
+import profileRoutes from './routes/profile.routes.js'
 import { notFoundHandler, errorHandler } from './middlewares/errorHandler.js'
 import { burstLimiter, ipLimiter, authFailureLimiter } from './middlewares/rateLimits.js'
+import { localizeResponses } from './utils/i18n.js'
 
 const app = express()
 
@@ -27,6 +29,10 @@ app.use(helmet())
 
 app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:5173' }))
 
+// Mensagens de erro no idioma da pessoa (Accept-Language). Fica antes de
+// tudo que pode responder com erro, inclusive os limites abaixo.
+app.use('/api', localizeResponses)
+
 // Limites de requisições (Etapa 17; detalhes em middlewares/rateLimits.js).
 // Ficam antes da leitura do corpo e da validação do token: quem passou do
 // limite é barrado sem gastar processamento nem consulta ao Supabase.
@@ -41,6 +47,7 @@ app.use('/api/finance', financeRoutes)
 app.use('/api/categories', categoryRoutes)
 app.use('/api/expenses', expenseRoutes)
 app.use('/api/budgets', budgetRoutes)
+app.use('/api/profile', profileRoutes)
 
 // Sempre por último: rota inexistente e tratamento central de erros.
 app.use('/api', notFoundHandler)

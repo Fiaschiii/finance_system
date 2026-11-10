@@ -3,15 +3,25 @@
 // - aal1: entrou só com e-mail e senha;
 // - aal2: entrou com senha E com o código do app autenticador.
 
-// Lê o campo "aal" do token. Não confere a assinatura: isso já foi feito pelo
+// Lê um campo do token. Não confere a assinatura: isso já foi feito pelo
 // supabase.auth.getUser(token) antes desta função ser chamada.
-export function getTokenAal(token) {
+function getTokenClaim(token, name) {
   try {
     const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString('utf8'))
-    return typeof payload.aal === 'string' ? payload.aal : null
+    return typeof payload[name] === 'string' ? payload[name] : null
   } catch {
     return null
   }
+}
+
+export function getTokenAal(token) {
+  return getTokenClaim(token, 'aal')
+}
+
+// Id da sessão (aparelho/navegador) a que o token pertence. Usado em
+// Minha conta > Sessões ativas, para marcar "este aparelho".
+export function getTokenSessionId(token) {
+  return getTokenClaim(token, 'session_id')
 }
 
 // O usuário tem algum app autenticador confirmado? (Um app só lido no QR
