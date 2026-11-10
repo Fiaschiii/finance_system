@@ -46,7 +46,7 @@ cd frontend
 npm run dev
 ```
 
-Abra http://localhost:5173, crie sua conta e entre. O menu leva às páginas **Resumo**, **Histórico** e **Configurações**.
+Abra http://localhost:5173, crie sua conta e entre. O menu leva às páginas **Resumo**, **Histórico** e **Configurações**; clicar no seu nome (ou foto), no canto, abre **Minha conta**.
 
 ## Variáveis de ambiente
 
@@ -56,7 +56,8 @@ Copie `backend/.env.example` para `backend/.env` e `frontend/.env.example` para 
 
 - **Resumo**: o mês atual, com salário, gastos, saldo e % do salário gasto. As setas ‹ › trocam o mês, e o mês escolhido fica no endereço (`/?mes=2026-10`): dá para recarregar a página ou salvar nos favoritos sem perder o mês. Os gastos ficam logo abaixo dos cartões; o gráfico por categoria e as caixinhas, lado a lado.
 - **Histórico**: gráfico de salário × gastos e a lista de todos os meses. Clique no mês para ver e editar os gastos ali mesmo, ou em "Ver resumo" para abri-lo no Resumo.
-- **Configurações**: categorias, **verificação em duas etapas** (ver abaixo), **aparência** (automático, claro ou escuro; o automático segue o sistema operacional) e o teste de **conexão** com o servidor e o banco.
+- **Configurações**: categorias e o teste de **conexão** com o servidor e o banco.
+- **Minha conta**: dados cadastrais (foto, nome, telefone, e-mail), segurança (senha, verificação em duas etapas, sessões ativas) e preferências (idioma, tema e avisos). Ver [Etapa 18](#minha-conta-etapa-18).
 - Cada ação (salvar, editar, excluir) mostra um aviso rápido no canto da tela.
 - Ao trocar de página, uma tela de carregamento com o ícone do sistema cobre o conteúdo até os dados chegarem (no mínimo ~0,5 s, para não piscar). Trocar só o mês no Resumo não a mostra.
 - Botões e links reagem ao mouse: levantam, ganham sombra ou um fundo suave, e "afundam" no clique.
@@ -66,7 +67,7 @@ Copie `backend/.env.example` para `backend/.env` e `frontend/.env.example` para 
 
 Opcional, por conta. Depois de ativada, o login pede a senha **e** um código de 6 dígitos que muda a cada 30 segundos no app autenticador do celular (Microsoft Authenticator, Google Authenticator, Authy etc.).
 
-**Ativar:** Configurações → Verificação em duas etapas → **Ativar**. No Microsoft Authenticator, toque em **+** → **Outra conta (Google, Facebook etc.)**, leia o QR Code e digite o código que aparecer. A conta aparece no app como "Controle Financeiro".
+**Ativar:** Minha conta → Segurança → Verificação em duas etapas → **Ativar**. No Microsoft Authenticator, toque em **+** → **Outra conta (Google, Facebook etc.)**, leia o QR Code e digite o código que aparecer. A conta aparece no app como "Controle Financeiro".
 
 **Entrar:** e-mail e senha, depois a tela pede o código. Enquanto ele não for digitado, nenhuma página do sistema abre e o cabeçalho mostra só "Sair".
 
@@ -120,13 +121,53 @@ O backend aguenta quem tenta martelar a API (um robô, um script com defeito, al
 - **No frontend**, o aviso de erro diz quando tentar de novo ("… (liberado em 42 s)"), e leituras iguais feitas ao mesmo tempo viram uma só requisição.
 - Os contadores ficam na memória do backend: reiniciá-lo zera todos. Para mais de uma instância do backend, eles teriam de ir para um armazenamento compartilhado (Redis, por exemplo).
 
+## Minha conta (Etapa 18)
+
+Autogestão do perfil (*self-service profile management*): cada pessoa cuida da própria conta sem depender de ninguém. Fica em **Minha conta** (clique no seu nome ou foto, no cabeçalho), em três abas. A aba aberta fica no endereço (`/profile?aba=seguranca`).
+
+**Dados cadastrais**
+
+- **Foto**: JPEG, PNG ou WebP. O navegador recorta em quadrado e reduz para 256×256 antes de enviar, o que também descarta os metadados da foto (como a localização GPS). O backend confere o tipo pelos primeiros bytes do arquivo, não pelo nome. A foto fica num bucket **privado** do Supabase Storage e só abre por um link temporário (1 hora) gerado para o próprio dono. Sem foto, aparecem as iniciais.
+- **Nome** e **telefone**: o telefone pode ser digitado como quiser (`(11) 98765-4321`, `11987654321`, `+55 11 …`); é guardado no formato internacional (`+5511987654321`).
+- **E-mail**: a troca passa pelo Supabase, que manda um link de confirmação (e, com *Secure email change* ligado, avisa também o e-mail antigo). O e-mail só muda depois do clique; até lá, a tela mostra "troca pendente".
+
+**Segurança**
+
+- **Senha**: nova senha + confirmação (mínimo de 8 caracteres). Com *Secure password change* ligado no Supabase e um login antigo, o Supabase manda um código para o e-mail e a troca só passa com ele.
+- **Verificação em duas etapas**: a mesma da Etapa 15, que saiu de Configurações e veio para cá.
+- **Sessões ativas**: cada aparelho/navegador conectado, com o último uso, o IP e se entrou com o código do app. "Este aparelho" fica marcado. Dá para encerrar uma sessão ou **todas as outras** de uma vez. Uma sessão encerrada cai **na hora**: o backend recusa o token dela e o banco também (ver abaixo).
+
+**Preferências** (salvas na hora, sem botão "Salvar"; ficam no perfil e acompanham a pessoa em qualquer navegador)
+
+- **Idioma**: português ou inglês. Traduz **o sistema inteiro**: telas, mensagens, avisos, moeda (`R$ 1.200,50` × `R$1,200.50`, sempre em reais), datas e meses, os erros do Supabase e os erros que vêm do backend. Antes de entrar, o idioma troca pelo botão **EN/PT** do cabeçalho; na primeira visita, segue o idioma do navegador.
+- **Tema**: automático, claro ou escuro (antes ficava em Configurações).
+- **Avisos no Resumo**: caixinha perto do limite (80%) ou estourada; salário do mês ainda não informado; lembrete para ativar a verificação em duas etapas. Cada um pode ser desligado.
+
+### Regra de segurança: o dono é sempre quem está logado
+
+O backend nunca confia num id de usuário que venha da requisição. O "Usuário A" não consegue ver nem alterar nada do "Usuário B" mexendo na URL ou no corpo da requisição, e isso vale em quatro camadas:
+
+1. **Não há endereço para o perfil de outra pessoa.** As rotas são `/api/profile`, `/api/profile/avatar` e `/api/profile/sessions`, sem id de usuário. `/api/profile/<id-de-alguém>` responde 404.
+2. **O id vem do token.** O `requireAuth` valida o token com o Supabase e guarda `req.user.id`; os serviços filtram e gravam sempre com ele. O controller só aceita uma lista fechada de campos (nome, telefone, idioma, tema, avisos): o resto é ignorado.
+3. **Id de outra pessoa na requisição é recusado.** Se o corpo ou a query trouxerem `id`, `user_id`, `userId`, `owner` ou `owner_id` diferente do logado, a resposta é **403** (`code: "forbidden_user"`), nada é gravado e a tentativa fica no log do servidor (`[segurança] usuário … tentou usar user_id=…`).
+4. **O banco confere de novo (RLS).** A tabela `profiles` tem o próprio id do usuário como chave, e só `auth.uid() = id` lê ou altera. A foto só pode ficar na pasta `<id do dono>/` do bucket. As funções de sessões não recebem id de usuário: usam `auth.uid()`, então pedir para encerrar a sessão de outra pessoa simplesmente não encontra nada.
+
+Troca de e-mail e de senha vão direto para o Supabase Auth, que também identifica a conta só pelo token da sessão.
+
+### O que precisa ser feito no Supabase
+
+1. Rode `database/migrations/0005_profile.sql` no SQL Editor e depois o `checks/verificar_seguranca.sql` (tudo ✅).
+2. **Authentication → URL Configuration → Redirect URLs**: acrescente `http://localhost:5173/profile`.
+3. Recomendado: **Authentication → Sign In / Providers → Email**: ligue **Secure email change** e **Secure password change**.
+4. Os e-mails de aviso de troca de e-mail e de senha já existem em [`docs/emails/`](docs/emails/README.md).
+
 ## Testes
 
 Os testes rodam sem internet e **sem tocar no Supabase**: o login e o banco são simulados, então podem ser rodados quantas vezes quiser, sem criar nem apagar dados reais.
 
 ```bash
-cd backend && npm test     # 210 testes
-cd frontend && npm test    # 154 testes
+cd backend && npm test     # 337 testes
+cd frontend && npm test    # 227 testes
 ```
 
 Use `npm run test:watch` para rodar de novo a cada arquivo salvo.
@@ -139,6 +180,7 @@ Use `npm run test:watch` para rodar de novo a cada arquivo salvo.
 - `unit/mfa.test.js` e `api/mfa.test.js`: com app autenticador ativado, sessão só com senha (`aal1`) recebe 403 e não chega a consultar os dados; com o código (`aal2`) passa; sem app, nada muda.
 - `api/rate-limit.test.js`: cada limite (rajada, volume, login inválido, gravações por usuário, teste do banco) devolve 429 com o tempo de espera; quem foi barrado não chega ao Supabase; GET não conta como gravação; cada usuário tem o seu contador; `X-Forwarded-For` só vale com `TRUST_PROXY`.
 - `unit/fetchWithTimeout.test.js`: a chamada ao Supabase é cancelada quando passa do prazo.
+- `api/profile.test.js` e `unit/profile.test.js` (Etapa 18): **o dono é sempre o usuário do token** — `id`/`user_id` de outra pessoa no corpo ou na query dá 403 sem tocar no banco, `/api/profile/<id>` não existe (404), o próprio id é ignorado; foto conferida pelos bytes (texto disfarçado de JPEG, GIF e SVG recusados; 2 MB no máximo; arquivo novo apagado se a gravação falhar); sessões (a atual não se encerra por ali; a de outra pessoa dá 404); telefone normalizado; e um teste que varre o código e falha se alguma mensagem de erro ficar sem tradução para o inglês.
 - `api/finance.test.js`, `api/expenses.test.js`, `api/categories-and-budgets.test.js`: cada rota, com os casos de sucesso, de validação (400), de "não encontrado / de outra pessoa" (404), de categoria de outro usuário e de campos enviados pelo cliente que devem ser ignorados (`user_id`, `monthly_finance_id`).
 
 **Frontend** (Vitest + Testing Library + jsdom), em `frontend/tests/`:
@@ -150,6 +192,8 @@ Use `npm run test:watch` para rodar de novo a cada arquivo salvo.
 - `utils/mfa.test.js` e `components/Mfa.test.jsx`: leitura do nível da sessão, a tela do código (certo, errado, sair) e ativar/cancelar/desativar em Configurações.
 - `config/csp.test.js`, `components/Captcha.test.jsx` e `components/IdleLogout.test.jsx`: o que a CSP libera e bloqueia, o CAPTCHA travando o botão até a verificação e renovando o comprovante a cada tentativa, e a contagem de inatividade (aviso, saída só deste navegador, uso em outra aba, mensagem no login).
 - `utils/month-and-theme.test.js`: cálculo do mês anterior/seguinte, mês na URL e escolha de tema.
+- `i18n/i18n.test.jsx` (Etapa 18): português e inglês com as mesmas chaves e os mesmos `{parâmetros}`; moeda, datas, tipos e erros do Supabase em cada idioma; troca ao vivo; a API recebe o `Accept-Language`.
+- `components/Profile.test.jsx`, `components/DashboardAlerts.test.jsx` e `utils/profile-utils.test.js` (Etapa 18): as três abas de Minha conta, **nenhuma requisição leva id de usuário**, foto, troca de e-mail, troca de senha (inclusive com o código de reautenticação), sessões, preferências salvas e desfeitas se o servidor recusar, e os avisos do Resumo ligando e desligando.
 O que **não** é coberto aqui é o RLS do banco: ele foi testado à parte num PostgreSQL local (ver [`database/README.md`](database/README.md#testado-antes-da-entrega)) e pode ser conferido no Supabase com `database/checks/verificar_seguranca.sql`.
 
 ## Segurança
@@ -166,6 +210,7 @@ O que protege os dados:
 2. **Authentication → Sign In / Providers → Email**: deixe **Confirm email** ligado e mude **Minimum password length** para **8**, o mesmo mínimo das telas de cadastro e de nova senha.
 3. **Authentication → URL Configuration**: em **Site URL**, coloque `http://localhost:5173`. Em **Redirect URLs**, coloque `http://localhost:5173/reset-password`. Assim, o link de "esqueci minha senha" só leva de volta para o seu sistema.
 4. **SQL Editor** (Etapa 15): rode `database/migrations/0004_mfa_enforcement.sql` e depois, de novo, o `verificar_seguranca.sql`.
+   - **Etapa 18:** rode `database/migrations/0005_profile.sql` e depois, de novo, o `verificar_seguranca.sql`. Em **Authentication → URL Configuration → Redirect URLs**, acrescente `http://localhost:5173/profile` (para onde leva o link de confirmação da troca de e-mail).
 5. **Authentication → Multi-Factor**: confira que **TOTP (App Authenticator)** está habilitado (é o padrão).
 6. **Advisors → Security Advisor**: não deve sobrar nenhum item em vermelho (*Error*) nas tabelas do projeto.
 7. Nunca coloque a chave **secret** (antiga `service_role`) em nenhum `.env` deste projeto. Ela ignora o RLS e o sistema não precisa dela.
@@ -189,5 +234,6 @@ O que protege os dados:
 - [x] Etapa 15 — Verificação em duas etapas (MFA)
 - [x] Etapa 16 — Segurança avançada
 - [x] Etapa 17 — Resistência a excesso de requisições
+- [x] Etapa 18 — Minha conta (perfil, segurança e preferências)
 
 As seções sobre configuração do Supabase, criação das tabelas, RLS e criação de usuário serão adicionadas aqui conforme cada etapa for concluída.
