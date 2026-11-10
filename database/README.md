@@ -51,9 +51,10 @@ Rodei a migração inteira num Postgres local (simulando `auth.users` e `auth.ui
 | `migrations/0002_backfill_default_categories.sql` | **Só se** o seletor de categorias do formulário de gastos vier vazio. Acontece com contas criadas *antes* do gatilho da Etapa 3 (ele só semeia as categorias de quem se cadastra depois). Cria as 10 categorias padrão apenas para quem não tem **nenhuma**; pode ser rodado mais de uma vez e não recria categorias que alguém apagou de propósito |
 | `migrations/0003_security_hardening.sql` | **Uma vez, depois da 0001** (Etapa 12). Reforça a segurança: chaves estrangeiras do mesmo dono, políticas só para logados, limites de texto e funções protegidas |
 | `migrations/0004_mfa_enforcement.sql` | **Uma vez, depois da 0003** (Etapa 15). Quem ativou o app autenticador só lê e grava os dados depois de digitar o código (sessão `aal2`) |
+| `migrations/0005_profile.sql` | **Uma vez, depois da 0004** (Etapa 18). Perfil (`profiles`), fotos (bucket `avatars`), funções de sessões ativas e a regra que derruba na hora o token de uma sessão encerrada |
 | `checks/verificar_seguranca.sql` | **Quando quiser.** Só lê o banco e mostra ✅/❌ para cada item de segurança |
 
-Novas mudanças de schema devem virar `0004_*.sql`, `0005_*.sql` etc. — nunca edite um script depois que ele já tiver sido rodado em algum ambiente.
+Novas mudanças de schema devem virar `0006_*.sql`, `0007_*.sql` etc. — nunca edite um script depois que ele já tiver sido rodado em algum ambiente.
 
 ## Segurança (Etapa 12)
 
@@ -97,4 +98,35 @@ A `0004` foi aplicada depois de `0001` → `0003` num PostgreSQL 18 local, simul
 - **Novo cadastro:** o gatilho continuou criando as 10 categorias.
 - **Permissões:** `anon` não consegue chamar a função, e `authenticated` não lê `auth.mfa_factors`.
 - **Verificação de segurança:** o `verificar_seguranca.sql` mostrou ❌ nos itens novos antes da `0004` e ✅ em tudo depois.
+
+## Minha conta (Etapa 18)
+
+A migração `0005_profile.sql` cria o que a página **Minha conta** precisa. A regra que guia tudo: **o dono é sempre `auth.uid()`**, o usuário do token assinado pelo Supabase. Nenhuma tabela ou função aceita um id de usuário vindo de fora.
+
+- **`public.profiles`**: uma linha por conta, com o **mesmo id** de `auth.users` (chave primária e estrangeira ao mesmo tempo; não existe "id do perfil" separado). Guarda nome, telefone (formato internacional, `+5511987654321`), o caminho da foto e as preferências (idioma `pt-BR`/`en`, tema `auto`/`light`/`dark` e três avisos liga/desliga). RLS: só `auth.uid() = id` lê, cria e altera; não há política de exclusão (o perfil some junto com a conta, em cascata). Tem a mesma política restritiva de MFA das outras tabelas. Os limites (nome ≤ 100, telefone E.164, idioma e tema da lista, foto **só na pasta do dono**) estão em *check constraints*, iguais aos do backend.
+- **Perfil automático**: um gatilho cria o perfil de cada conta nova, e a própria migração cria o das contas que já existiam.
+- **Bucket `avatars`** (Supabase Storage), **privado**, até 2 MB, só JPEG/PNG/WebP. As 4 políticas de `storage.objects` exigem que a primeira pasta do caminho seja o id de quem está logado (`<id>/foto.jpg`), além de MFA e sessão ativa.
+- **Sessões ativas**: `auth.sessions` não é exposta pela API, então o acesso é por três funções `security definer`, com `search_path` vazio e sem acesso de visitantes:
+  - `list_my_sessions()`: as sessões de quem chamou (aparelho, IP, último uso, se tem o código do app e qual é a atual);
+  - `revoke_my_session(id)`: encerra **uma** sessão, só se for de quem chamou e não for a atual. Devolve `false` tanto para "não existe" quanto para "é de outra pessoa", de propósito;
+  - `revoke_my_other_sessions()`: encerra todas, menos a atual.
+- **Sessão encerrada cai na hora**: o token do Supabase vale até 1 hora e continuaria aceito pela API mesmo depois de a sessão ser apagada. A função `private.session_active()` confere se a sessão do token (`session_id`) ainda existe, e entra como política **restritiva** (`<tabela>: sessão ativa`) nas 5 tabelas e nas fotos. Encerrou, o token para de ler e gravar no mesmo instante, mesmo falando direto com a API do Supabase.
+
+Roda dentro de uma transação. Depois dela, o `verificar_seguranca.sql` ganha 13 itens novos, todos ✅.
+
+### Testado antes da entrega
+
+A `0005` foi aplicada depois de `0001` → `0004` num PostgreSQL 18 local, simulando `auth.users`, `auth.sessions`, `auth.refresh_tokens`, `auth.mfa_factors`, `auth.uid()`, `auth.jwt()`, o schema `storage` (com `storage.foldername`) e os papéis `anon` e `authenticated`, com duas contas que já existiam antes da migração. Os 31 cenários passaram:
+
+- **Backfill e gatilho**: as duas contas antigas ganharam perfil com os padrões; uma conta nova ganhou perfil e as 10 categorias; excluir a conta apagou o perfil.
+- **Isolamento do perfil**: Ana vê só o próprio; o `update` no perfil da Bia afeta 0 linhas; trocar o próprio `id` para o da Bia e inserir um perfil com o id da Bia são recusados pelo RLS.
+- **Limites**: telefone sem `+`, foto apontando para a pasta da Bia e idioma `fr` são recusados pelas *check constraints*.
+- **Sessões**: Ana lista as 3 sessões dela (a atual primeiro); não consegue encerrar a da Bia nem a atual; encerra a do celular (e o *refresh token* dela some em cascata); "encerrar as outras" apaga só o que sobrou dela; um token sem `session_id` não apaga nada.
+- **Sessão encerrada**: com o token da sessão já encerrada, o banco devolve 0 categorias e 0 perfis e recusa gravar (`monthly_finances: sessão ativa`). Com o token da sessão ativa, tudo normal.
+- **Fotos**: Ana grava na própria pasta, não grava na da Bia; a Bia não vê nem apaga a foto da Ana.
+- **MFA**: depois de a Ana ativar o app, uma sessão `aal1` vê 0 perfis, 0 sessões e 0 fotos e não consegue encerrar sessões (`mfa_required`); em `aal2`, funciona.
+- **Permissões**: `anon` não chama as funções de sessões nem vê perfis; `handle_new_user_profile` não pode ser chamada pela API.
+- **Verificação**: o `verificar_seguranca.sql` mostrou os 13 itens novos com ❌ antes da `0005` e 32 de 32 ✅ depois.
+
+Não foi possível rodar contra o seu projeto real. Dois pontos dependem do Supabase de verdade e valem conferir depois de rodar: o papel `postgres` (dono das funções) precisa poder apagar linhas de `auth.sessions` (a página Minha conta → Segurança → **Encerrar** mostra o erro se não puder), e o token precisa trazer o `session_id` (os tokens atuais do Supabase trazem).
 
