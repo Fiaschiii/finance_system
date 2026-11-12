@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '../hooks/useAuth.jsx'
+import { useProfile } from '../hooks/useProfile.jsx'
+import DemoLockNotice from './DemoLockNotice.jsx'
 import { useToast } from '../hooks/useToast.jsx'
 import { translateAuthError } from '../utils/authErrors.js'
 import { formatSecret, normalizeCode, qrCodeSrc } from '../utils/mfa.js'
@@ -15,6 +17,7 @@ function MfaSettings() {
   const { listFactors, enrollTotp, verifyTotp, unenrollFactor } = useAuth()
   const toast = useToast()
   const { t } = useI18n()
+  const { isDemo } = useProfile()
   const [status, setStatus] = useState('loading') // loading | ready | error
   const [factor, setFactor] = useState(null) // app já confirmado
   const [enrollment, setEnrollment] = useState(null) // { id, qrCode, secret }
@@ -152,9 +155,12 @@ function MfaSettings() {
       )}
 
       {status === 'ready' && !factor && !enrollment && (
-        <button type="button" className="button" onClick={startEnrollment} disabled={busy}>
-          <Icon name="shield" size={16} /> {busy ? t('mfa.generating') : t('mfa.enable')}
-        </button>
+        <>
+          {isDemo && <DemoLockNotice />}
+          <button type="button" className="button" onClick={startEnrollment} disabled={busy || isDemo}>
+            <Icon name="shield" size={16} /> {busy ? t('mfa.generating') : t('mfa.enable')}
+          </button>
+        </>
       )}
 
       {enrollment && (

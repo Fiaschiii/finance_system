@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { useAuth } from '../../hooks/useAuth.jsx'
+import { useProfile } from '../../hooks/useProfile.jsx'
+import DemoLockNotice from '../DemoLockNotice.jsx'
 import { useI18n } from '../../i18n/index.jsx'
 import { translateAuthError } from '../../utils/authErrors.js'
 
@@ -9,6 +11,7 @@ import { translateAuthError } from '../../utils/authErrors.js'
 function EmailSection() {
   const { t } = useI18n()
   const { user, updateEmail } = useAuth()
+  const { isDemo } = useProfile()
   const [email, setEmail] = useState('')
   const [sending, setSending] = useState(false)
   const [error, setError] = useState('')
@@ -47,6 +50,9 @@ function EmailSection() {
         pending && <p className="status status--pending">{t('email.pending', { email: pending })}</p>
       )}
 
+      {isDemo && <DemoLockNotice />}
+
+      <fieldset className="plain-fieldset" disabled={isDemo}>
       <form className="profile-form" onSubmit={handleSubmit}>
         <label>
           {t('email.new')}
@@ -65,6 +71,7 @@ function EmailSection() {
           </button>
         </div>
       </form>
+      </fieldset>
     </div>
   )
 }

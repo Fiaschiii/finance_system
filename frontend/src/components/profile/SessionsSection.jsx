@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { apiFetch } from '../../services/api.js'
 import { useToast } from '../../hooks/useToast.jsx'
+import { useProfile } from '../../hooks/useProfile.jsx'
+import DemoLockNotice from '../DemoLockNotice.jsx'
 import { useI18n } from '../../i18n/index.jsx'
 import { formatDateTime } from '../../utils/date.js'
 import { describeUserAgent, isMobileUserAgent } from '../../utils/userAgent.js'
@@ -12,6 +14,7 @@ import { SkeletonRows } from '../Skeleton.jsx'
 function SessionsSection() {
   const { t } = useI18n()
   const toast = useToast()
+  const { isDemo } = useProfile()
   const [sessions, setSessions] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -84,12 +87,18 @@ function SessionsSection() {
               </button>
             </span>
           ) : (
-            <button type="button" className="action-button action-button--danger" onClick={() => setConfirmingId('others')}>
+            <button
+              type="button"
+              className="action-button action-button--danger"
+              onClick={() => setConfirmingId('others')}
+              disabled={isDemo}
+            >
               {t('sessions.revokeOthers')}
             </button>
           ))}
       </div>
       <p>{t('sessions.intro')}</p>
+      {isDemo && others.length > 0 && <DemoLockNotice />}
 
       {loading && <SkeletonRows count={2} />}
       {error && (
@@ -153,6 +162,7 @@ function SessionsSection() {
                       className="action-button action-button--danger"
                       aria-label={t('sessions.revokeLabel', { device: label })}
                       onClick={() => setConfirmingId(session.id)}
+                      disabled={isDemo}
                     >
                       {t('sessions.revoke')}
                     </button>

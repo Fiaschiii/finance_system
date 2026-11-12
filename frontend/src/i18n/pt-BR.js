@@ -243,6 +243,7 @@ export default {
   'settings.newCategory': 'Nova categoria',
   'settings.categoriesIntro':
     'As categorias organizam seus gastos e são a base das caixinhas. Uma categoria que já tem gastos não pode ser excluída, mas pode ser renomeada.',
+  'demo.locked': 'Conta de demonstração: esta parte fica travada para que todos os visitantes continuem conseguindo entrar.',
   'panels.title': 'Painéis do Resumo',
   'panels.intro': 'Escolha a ordem em que os painéis aparecem no Resumo e o ícone de cada um. As mudanças são salvas na hora.',
   'panels.restore': 'Restaurar padrão',

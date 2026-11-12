@@ -13,9 +13,10 @@ vi.mock('../../src/hooks/useProfile.jsx', async (importOriginal) => {
 const budget = (name, spent, limit) => ({ id: name, spent, limit_amount: limit, category: { name } })
 const BUDGETS = [budget('Mercado', 900, 1000), budget('Lazer', 250, 200), budget('Saúde', 10, 100)]
 
-function setPrefs(prefs = {}, mfaEnabled = false) {
+function setPrefs(prefs = {}, mfaEnabled = false, isDemo = false) {
   useProfile.mockReturnValue({
     mfaEnabled,
+    isDemo,
     notifications: notificationsOf({
       notify_budget_alerts: true,
       notify_missing_salary: true,
@@ -82,4 +83,11 @@ describe('avisos do Resumo', () => {
     )
     expect(container).toBeEmptyDOMElement()
   })
+})
+
+it('conta de demonstração: sem o lembrete de ativar a verificação em duas etapas (lá ela fica travada)', () => {
+  setPrefs({}, false, true)
+  renderAlerts()
+  expect(screen.queryByRole('link', { name: /Ativar/i })).not.toBeInTheDocument()
+  expect(screen.queryByText(/duas etapas/i)).not.toBeInTheDocument()
 })
