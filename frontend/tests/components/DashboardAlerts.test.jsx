@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
-import { ROUTER_FUTURE } from '../../src/routerFuture.js'
 import { useProfile, notificationsOf } from '../../src/hooks/useProfile.jsx'
 import DashboardAlerts, { budgetAlerts } from '../../src/components/DashboardAlerts.jsx'
 
@@ -29,7 +28,7 @@ function setPrefs(prefs = {}, mfaEnabled = false) {
 function renderAlerts(props = {}) {
   const onInformSalary = vi.fn()
   render(
-    <MemoryRouter future={ROUTER_FUTURE}>
+    <MemoryRouter>
       <DashboardAlerts budgets={BUDGETS} salaryMissing monthLabel="Novembro/2026" onInformSalary={onInformSalary} {...props} />
     </MemoryRouter>
   )
@@ -77,7 +76,7 @@ describe('avisos do Resumo', () => {
   it('tudo desligado: nada aparece', () => {
     setPrefs({ notify_budget_alerts: false, notify_missing_salary: false, notify_mfa_reminder: false })
     const { container } = render(
-      <MemoryRouter future={ROUTER_FUTURE}>
+      <MemoryRouter>
         <DashboardAlerts budgets={BUDGETS} salaryMissing monthLabel="x" onInformSalary={() => {}} />
       </MemoryRouter>
     )

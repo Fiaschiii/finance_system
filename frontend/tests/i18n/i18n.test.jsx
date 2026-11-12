@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
-import { ROUTER_FUTURE } from '../../src/routerFuture.js'
 import ptBR from '../../src/i18n/pt-BR.js'
 import en from '../../src/i18n/en.js'
 import {
@@ -157,7 +156,7 @@ describe('I18nProvider', () => {
   it('uma página inteira em inglês (Entrar)', () => {
     render(
       <I18nProvider initialLanguage="en">
-        <MemoryRouter future={ROUTER_FUTURE}>
+        <MemoryRouter>
           <Login />
         </MemoryRouter>
       </I18nProvider>

@@ -6,6 +6,7 @@ import { useRouteReady } from '../hooks/useRouteLoading.jsx'
 import { translateAuthError } from '../utils/authErrors.js'
 import { normalizeCode } from '../utils/mfa.js'
 import TotpCodeInput from '../components/TotpCodeInput.jsx'
+import { safeRedirectPath } from '../utils/safeRedirect.js'
 import { useI18n } from '../i18n/index.jsx'
 
 // Segundo passo do login: a senha já foi aceita, falta o código de 6 dígitos
@@ -64,7 +65,7 @@ function MfaVerifyForm() {
       setCode('')
       return
     }
-    navigate(location.state?.from?.pathname ?? '/', { replace: true })
+    navigate(safeRedirectPath(location.state?.from?.pathname), { replace: true })
   }
 
   async function handleSignOut() {

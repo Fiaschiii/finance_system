@@ -2,7 +2,6 @@ import React from 'react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, act, fireEvent } from '@testing-library/react'
 import { MemoryRouter, Routes, Route, Link } from 'react-router-dom'
-import { ROUTER_FUTURE } from '../../src/routerFuture.js'
 import { RouteLoadingProvider, useRouteReady } from '../../src/hooks/useRouteLoading.jsx'
 
 // Página de teste: fica "carregando" até o teste liberar.
@@ -23,7 +22,7 @@ function SlowPage({ name }) {
 
 function renderApp() {
   render(
-    <MemoryRouter initialEntries={['/a']} future={ROUTER_FUTURE}>
+    <MemoryRouter initialEntries={['/a']}>
       <RouteLoadingProvider>
         <Routes>
           <Route path="/a" element={<SlowPage key="a" name="Página A" />} />

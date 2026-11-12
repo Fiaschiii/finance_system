@@ -2,7 +2,6 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App.jsx'
-import { ROUTER_FUTURE } from './routerFuture.js'
 import { AuthProvider } from './hooks/useAuth.jsx'
 import { ProfileProvider } from './hooks/useProfile.jsx'
 import { I18nProvider } from './i18n/index.jsx'
@@ -11,7 +10,7 @@ import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <BrowserRouter future={ROUTER_FUTURE}>
+    <BrowserRouter>
       <I18nProvider>
         <AuthProvider>
           <ProfileProvider>

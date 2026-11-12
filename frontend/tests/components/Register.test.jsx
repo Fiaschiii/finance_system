@@ -1,7 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { ROUTER_FUTURE } from '../../src/routerFuture.js'
 import { MemoryRouter } from 'react-router-dom'
 import { useAuth } from '../../src/hooks/useAuth.jsx'
 import Register from '../../src/pages/Register.jsx'
@@ -11,7 +10,7 @@ vi.mock('../../src/hooks/useAuth.jsx', () => ({ useAuth: vi.fn() }))
 async function fillAndSubmit(signUp) {
   useAuth.mockReturnValue({ signUp })
   render(
-    <MemoryRouter future={ROUTER_FUTURE}>
+    <MemoryRouter>
       <Register />
     </MemoryRouter>
   )
@@ -25,7 +24,7 @@ describe('Cadastro', () => {
   it('exige senha de no mínimo 8 caracteres (igual ao Supabase)', () => {
     useAuth.mockReturnValue({ signUp: vi.fn() })
     render(
-      <MemoryRouter future={ROUTER_FUTURE}>
+      <MemoryRouter>
         <Register />
       </MemoryRouter>
     )

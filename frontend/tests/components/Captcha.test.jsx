@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
-import { ROUTER_FUTURE } from '../../src/routerFuture.js'
 import { useAuth } from '../../src/hooks/useAuth.jsx'
 import Login from '../../src/pages/Login.jsx'
 
@@ -31,7 +30,7 @@ beforeEach(() => {
 function renderLogin(signIn) {
   useAuth.mockReturnValue({ signIn })
   render(
-    <MemoryRouter future={ROUTER_FUTURE}>
+    <MemoryRouter>
       <Login />
     </MemoryRouter>
   )

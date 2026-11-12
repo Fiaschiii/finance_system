@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor, renderHook } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, useLocation } from 'react-router-dom'
-import { ROUTER_FUTURE } from '../../src/routerFuture.js'
 import { apiFetch } from '../../src/services/api.js'
 import { useFinance } from '../../src/hooks/useFinance.js'
 import Dashboard from '../../src/pages/Dashboard.jsx'
@@ -37,7 +36,7 @@ function UrlSpy() {
 
 function renderAt(url) {
   render(
-    <MemoryRouter initialEntries={[url]} future={ROUTER_FUTURE}>
+    <MemoryRouter initialEntries={[url]}>
       <Dashboard />
       <UrlSpy />
     </MemoryRouter>

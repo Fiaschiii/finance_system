@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, useLocation } from 'react-router-dom'
-import { ROUTER_FUTURE } from '../../src/routerFuture.js'
 import { apiFetch } from '../../src/services/api.js'
 import { useAuth } from '../../src/hooks/useAuth.jsx'
 import { ProfileProvider } from '../../src/hooks/useProfile.jsx'
@@ -117,7 +116,7 @@ function UrlSpy() {
 
 function renderProfile(url = '/profile') {
   render(
-    <MemoryRouter initialEntries={[url]} future={ROUTER_FUTURE}>
+    <MemoryRouter initialEntries={[url]}>
       <I18nProvider initialLanguage="pt-BR">
         <ProfileProvider>
           <ToastProvider>

@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, act, fireEvent } from '@testing-library/react'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
-import { ROUTER_FUTURE } from '../../src/routerFuture.js'
 import { useAuth } from '../../src/hooks/useAuth.jsx'
 import IdleLogout, { LOGOUT_REASON_KEY } from '../../src/components/IdleLogout.jsx'
 import Login from '../../src/pages/Login.jsx'
@@ -23,7 +22,7 @@ afterEach(() => vi.useRealTimers())
 
 function renderIdle() {
   render(
-    <MemoryRouter initialEntries={['/']} future={ROUTER_FUTURE}>
+    <MemoryRouter initialEntries={['/']}>
       <IdleLogout />
       <Routes>
         <Route path="/" element="Resumo" />
@@ -102,7 +101,7 @@ describe('encerramento por inatividade (15 min, aviso 1 min antes)', () => {
     sessionStorage.setItem(LOGOUT_REASON_KEY, 'idle')
     const renderLogin = () =>
       render(
-        <MemoryRouter future={ROUTER_FUTURE}>
+        <MemoryRouter>
           <Login />
         </MemoryRouter>
       )

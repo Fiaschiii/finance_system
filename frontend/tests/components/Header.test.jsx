@@ -2,7 +2,6 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
-import { ROUTER_FUTURE } from '../../src/routerFuture.js'
 import { useAuth } from '../../src/hooks/useAuth.jsx'
 import Header from '../../src/components/Header.jsx'
 
@@ -11,7 +10,7 @@ vi.mock('../../src/hooks/useAuth.jsx', () => ({ useAuth: vi.fn() }))
 function renderHeader(user = { id: 'u1', email: 'ana@exemplo.com' }, mfaPending = false) {
   useAuth.mockReturnValue({ user, mfaPending, signOut: vi.fn() })
   render(
-    <MemoryRouter future={ROUTER_FUTURE}>
+    <MemoryRouter>
       <Header />
     </MemoryRouter>
   )
@@ -67,7 +66,7 @@ describe('Header: idioma antes de entrar', () => {
     useAuth.mockReturnValue({ user: null, mfaPending: false, signOut: vi.fn() })
     render(
       <I18nProvider initialLanguage="pt-BR">
-        <MemoryRouter future={ROUTER_FUTURE}>
+        <MemoryRouter>
           <Header />
         </MemoryRouter>
       </I18nProvider>

@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
-import { ROUTER_FUTURE } from '../../src/routerFuture.js'
 import { useAuth } from '../../src/hooks/useAuth.jsx'
 import MfaVerify from '../../src/pages/MfaVerify.jsx'
 import MfaSettings from '../../src/components/MfaSettings.jsx'
@@ -36,7 +35,7 @@ beforeEach(() => {
 
 function renderVerify() {
   render(
-    <MemoryRouter initialEntries={[{ pathname: '/mfa', state: { from: { pathname: '/history' } } }]} future={ROUTER_FUTURE}>
+    <MemoryRouter initialEntries={[{ pathname: '/mfa', state: { from: { pathname: '/history' } } }]}>
       <Routes>
         <Route path="/mfa" element={<MfaVerify />} />
         <Route path="/history" element="Histórico" />

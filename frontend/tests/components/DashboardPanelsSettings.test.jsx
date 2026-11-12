@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
-import { ROUTER_FUTURE } from '../../src/routerFuture.js'
 import { apiFetch } from '../../src/services/api.js'
 import { useAuth } from '../../src/hooks/useAuth.jsx'
 import { ProfileProvider } from '../../src/hooks/useProfile.jsx'
@@ -44,7 +43,7 @@ beforeEach(() => {
 
 function renderPage(page) {
   render(
-    <MemoryRouter future={ROUTER_FUTURE}>
+    <MemoryRouter>
       <I18nProvider initialLanguage="pt-BR">
         <ProfileProvider>
           <ToastProvider>{page}</ToastProvider>
