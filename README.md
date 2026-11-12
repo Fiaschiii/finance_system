@@ -15,7 +15,7 @@ controle-financeiro/
 
 ## Pré-requisitos
 
-- Node.js 18 ou superior e npm 9 ou superior (`node -v`, `npm -v`)
+- Node.js 22.12 ou superior e npm 10 ou superior (`node -v`, `npm -v`). O Vite 8 e o Vitest 5 do frontend não rodam em versões mais antigas.
 - Conta gratuita no [Supabase](https://supabase.com) — criaremos o projeto na Etapa 2
 
 ## Instalação
