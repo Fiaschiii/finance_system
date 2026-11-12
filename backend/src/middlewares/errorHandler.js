@@ -32,6 +32,12 @@ export function errorHandler(err, req, res, next) {
     return res.status(413).json({ error: 'Corpo da requisição grande demais.' })
   }
 
+  // Trava da conta de demonstração no banco (migração 0007). O backend já
+  // recusa antes; isto cobre o que escapar (ex.: um caminho novo no futuro).
+  if (err?.message === 'demo_account_locked') {
+    return res.status(403).json({ error: 'Indisponível na conta de demonstração.', code: 'demo_locked' })
+  }
+
   console.error(err)
 
   const body = { error: 'Erro interno do servidor.' }

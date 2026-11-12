@@ -62,17 +62,39 @@ function parseProfileFields(body = {}) {
   return fields
 }
 
+// ------------------- Conta de demonstração -------------------
+// Na conta de demonstração (login publicado no README do portfólio), o que
+// poderia trancar os outros visitantes do lado de fora ou expor algo ofensivo
+// fica travado: nome, telefone, foto e encerrar sessões. Senha, e-mail e MFA
+// vão direto da tela para o Supabase Auth; a trava deles fica no banco
+// (migração 0007), que também confere de novo tudo o que está aqui.
+export const DEMO_LOCKED_MESSAGE = 'Indisponível na conta de demonstração.'
+const DEMO_LOCKED_FIELDS = ['full_name', 'phone']
+
+// true se respondeu 403 (e quem chamou deve parar).
+async function rejectDemo(req, res) {
+  if (!(await profileService.isDemoAccount(req.supabase))) return false
+  res.status(403).json({ error: DEMO_LOCKED_MESSAGE, code: 'demo_locked' })
+  return true
+}
+
 // O que o frontend recebe: dados do perfil + o que vem do login (e-mail,
 // troca de e-mail pendente, MFA). O caminho interno da foto não sai daqui:
 // vai só o link temporário.
 async function toResponse(req, profile) {
   const { avatar_path: avatarPath, ...rest } = profile
+  const [avatarUrl, isDemo] = await Promise.all([
+    profileService.signAvatarUrl(req.supabase, req.user.id, avatarPath),
+    profileService.isDemoAccount(req.supabase),
+  ])
   return {
     ...rest,
     email: req.user.email ?? null,
     new_email: req.user.new_email ?? null,
     mfa_enabled: hasVerifiedFactor(req.user),
-    avatar_url: await profileService.signAvatarUrl(req.supabase, req.user.id, avatarPath),
+    avatar_url: avatarUrl,
+    // A tela usa para desligar os botões travados (com o aviso do motivo).
+    is_demo: isDemo,
   }
 }
 
@@ -85,6 +107,7 @@ export const get = asyncHandler(async (req, res) => {
 // PUT /api/profile  (só os campos enviados)
 export const update = asyncHandler(async (req, res) => {
   const fields = parseProfileFields(req.body)
+  if (DEMO_LOCKED_FIELDS.some((key) => key in fields) && (await rejectDemo(req, res))) return
   const profile = await profileService.updateProfile(req.supabase, req.user.id, fields)
   res.json({ profile: await toResponse(req, profile) })
 })
@@ -115,6 +138,7 @@ export const uploadAvatar = asyncHandler(async (req, res) => {
   if (!type) {
     throw new ValidationError('Foto inválida: envie uma imagem JPEG, PNG ou WebP.')
   }
+  if (await rejectDemo(req, res)) return
 
   const current = await profileService.getProfile(req.supabase, req.user.id)
   const path = await profileService.uploadAvatar(req.supabase, req.user.id, { buffer: req.body, ...type })
@@ -134,6 +158,7 @@ export const uploadAvatar = asyncHandler(async (req, res) => {
 
 // DELETE /api/profile/avatar
 export const removeAvatar = asyncHandler(async (req, res) => {
+  if (await rejectDemo(req, res)) return
   const current = await profileService.getProfile(req.supabase, req.user.id)
   const profile = await profileService.updateProfile(req.supabase, req.user.id, { avatar_path: null })
   await profileService.removeAvatarFile(req.supabase, req.user.id, current.avatar_path)
@@ -154,6 +179,7 @@ export const revokeSession = asyncHandler(async (req, res) => {
   if (sessionId === req.sessionId) {
     throw new ValidationError('Para encerrar a sessão atual, use o botão Sair.')
   }
+  if (await rejectDemo(req, res)) return
 
   const revoked = await profileService.revokeSession(req.supabase, sessionId)
   if (!revoked) {
@@ -164,6 +190,7 @@ export const revokeSession = asyncHandler(async (req, res) => {
 
 // DELETE /api/profile/sessions  (todas, menos a atual)
 export const revokeOtherSessions = asyncHandler(async (req, res) => {
+  if (await rejectDemo(req, res)) return
   const revoked = await profileService.revokeOtherSessions(req.supabase)
   res.json({ revoked })
 })

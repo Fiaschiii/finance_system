@@ -68,6 +68,8 @@ const EN_EXACT = {
   'Sessão inválida.': 'Invalid session.',
   'Sessão não encontrada.': 'Session not found.',
   'Para encerrar a sessão atual, use o botão Sair.': 'To end the current session, use the Sign out button.',
+  // Conta de demonstração
+  'Indisponível na conta de demonstração.': 'Not available on the demo account.',
   // Painéis do resumo
   'Painéis do resumo inválidos: envie todos os painéis, cada um uma vez.':
     'Invalid summary panels: send every panel, each one once.',
