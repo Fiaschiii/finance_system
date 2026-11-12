@@ -53,6 +53,7 @@ Rodei a migração inteira num Postgres local (simulando `auth.users` e `auth.ui
 | `migrations/0004_mfa_enforcement.sql` | **Uma vez, depois da 0003** (Etapa 15). Quem ativou o app autenticador só lê e grava os dados depois de digitar o código (sessão `aal2`) |
 | `migrations/0005_profile.sql` | **Uma vez, depois da 0004** (Etapa 18). Perfil (`profiles`), fotos (bucket `avatars`), funções de sessões ativas e a regra que derruba na hora o token de uma sessão encerrada |
 | `migrations/0006_dashboard_panels.sql` | **Uma vez, depois da 0005.** Ordem e ícone dos painéis do Resumo (`profiles.dashboard_panels`), escolhidos em Configurações |
+| `migrations/0007_demo_account.sql` | **Uma vez, depois da 0006, só se for publicar com conta de demonstração.** Trava senha, e-mail, MFA, nome, telefone, foto e sessões da conta marcada em `private.demo_accounts` |
 | `checks/verificar_seguranca.sql` | **Quando quiser.** Só lê o banco e mostra ✅/❌ para cada item de segurança |
 
 Novas mudanças de schema devem virar `0006_*.sql`, `0007_*.sql` etc. — nunca edite um script depois que ele já tiver sido rodado em algum ambiente.
@@ -142,3 +143,30 @@ A migração `0006_dashboard_panels.sql` adiciona `profiles.dashboard_panels` (`
 ### Testado antes da entrega
 
 A função e a constraint foram aplicadas num PostgreSQL 18 local: uma lista válida (reordenada, com ícone trocado) foi gravada pelo papel `authenticated`; objeto, texto, lista vazia, painel repetido, painel desconhecido, ícone `<svg>`, ícone ausente, ícone numérico, campo extra e item que não é objeto foram recusados.
+
+## Conta de demonstração (0007)
+
+Para o portfólio, uma conta tem login e senha publicados e todo visitante entra com ela. A migração `0007_demo_account.sql` impede que um visitante tranque os outros do lado de fora ou exponha algo ofensivo. Contas normais não mudam em nada.
+
+- **`private.demo_accounts`**: a lista das contas de demonstração. Fica no schema `private` (fora da API) e **sem nenhuma permissão** para `anon` ou `authenticated`: só o dono do projeto marca ou desmarca, pelo SQL Editor. Como marcar e desmarcar está no comentário do topo da migração e no README principal.
+- **Senha e e-mail**: a troca vai direto da tela para o Supabase Auth, então a trava é um gatilho `before update` em `auth.users` (`protect_demo_user`). Recusa mudar `encrypted_password`, `email` ou pedir troca de e-mail (`email_change`). O resto da linha (último login etc.) muda normalmente: entrar e sair funciona.
+- **Verificação em duas etapas**: gatilho `before insert` em `auth.mfa_factors` (`protect_demo_mfa`).
+- **Nome, telefone e foto**: gatilho `before update` em `profiles` (`protect_demo_profile`) e três políticas **restritivas** no bucket `avatars` (enviar, trocar, apagar). Ver a foto continua permitido.
+- **Encerrar sessões**: `revoke_my_session` e `revoke_my_other_sessions` (da `0005`) ganham a mesma checagem; o resto delas é igual.
+- **`public.is_demo_account()`**: diz se quem está logado é a conta de demonstração. O backend usa para mandar `is_demo` no perfil, e a tela desliga os botões com o aviso do motivo.
+
+Os gatilhos são `security definer` porque quem grava em `auth.users` e `auth.mfa_factors` é o serviço de login, que não enxerga o schema `private`. Todos recusam com `demo_account_locked` (código `42501`); o backend transforma isso em 403 com a mensagem "Indisponível na conta de demonstração.".
+
+Depois dela, o `verificar_seguranca.sql` ganha 2 itens novos.
+
+### Testado antes da entrega
+
+A `0007` foi aplicada num PostgreSQL 18 local, simulando `auth.users`, `auth.mfa_factors`, `auth.sessions`, `auth.uid()`, `auth.jwt()`, `storage.objects` e os papéis `authenticated` e `supabase_auth_admin` (o do serviço de login), com uma conta de demonstração e uma normal:
+
+- **Conta de demonstração**: o login (atualizar `last_sign_in_at`) passou; trocar a senha, o e-mail, pedir troca de e-mail e ativar o MFA foram recusados. Logada, mudou o tema normalmente; mudar o nome, mudar a foto, enviar arquivo de foto, encerrar uma sessão e "encerrar todas as outras" foram recusados. Enviar arquivo para outro bucket continuou permitido.
+- **Visitante**: não consegue ler `private.demo_accounts` nem apagar a marca.
+- **Conta normal**: trocou senha e e-mail, ativou o MFA, mudou o nome, enviou foto e encerrou as outras sessões normalmente.
+- **Dono**: tirou a marca, redefiniu a senha e marcou de novo.
+- **Verificação**: os 2 itens novos do `verificar_seguranca.sql` mostraram ❌ antes da `0007` e ✅ depois.
+
+Não foi possível rodar contra o seu projeto real. Vale conferir lá, depois de marcar a conta: entrar com ela no site e tentar trocar a senha em **Minha conta → Segurança** (o botão aparece desligado). O Supabase permite gatilhos em `auth.users` (é o mesmo recurso do gatilho de cadastro da `0001`); se a migração falhar em `auth.mfa_factors` por falta de permissão, nada é aplicado (ela roda numa transação) e o erro aparece no SQL Editor.
