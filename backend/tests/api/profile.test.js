@@ -36,7 +36,17 @@ const PROFILE = {
   notify_budget_alerts: true,
   notify_missing_salary: true,
   notify_mfa_reminder: true,
+  dashboard_panels: null,
 }
+
+const PANELS = [
+  { id: 'salary', icon: 'wallet' },
+  { id: 'spent', icon: 'cart' },
+  { id: 'balance', icon: 'scale' },
+  { id: 'fixed', icon: 'pin' },
+  { id: 'variable', icon: 'shuffle' },
+  { id: 'percent', icon: 'percent' },
+]
 
 // Primeiros bytes reais de cada formato (o resto do arquivo não importa).
 const JPEG = Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xe0]), Buffer.alloc(60)])
@@ -119,6 +129,21 @@ describe('PUT /api/profile', () => {
     expect(profileService.updateProfile).toHaveBeenCalledWith(expect.anything(), USER.id, { theme: 'light' })
   })
 
+  it('salva a ordem e os ícones dos painéis do resumo, descartando campos extras', async () => {
+    const panels = [...PANELS].reverse().map((panel, index) => (index === 0 ? { ...panel, icon: 'star', extra: 'x' } : panel))
+    const res = await request(app).put('/api/profile').set(AUTH).send({ dashboard_panels: panels })
+
+    expect(res.status).toBe(200)
+    expect(profileService.updateProfile).toHaveBeenCalledWith(expect.anything(), USER.id, {
+      dashboard_panels: [{ id: 'percent', icon: 'star' }, ...[...PANELS].reverse().slice(1)],
+    })
+  })
+
+  it('dashboard_panels null volta ao padrão', async () => {
+    await request(app).put('/api/profile').set(AUTH).send({ dashboard_panels: null })
+    expect(profileService.updateProfile).toHaveBeenCalledWith(expect.anything(), USER.id, { dashboard_panels: null })
+  })
+
   it.each([
     [{ language: 'fr' }, 'Idioma inválido'],
     [{ theme: 'roxo' }, 'Tema inválido'],
@@ -126,6 +151,12 @@ describe('PUT /api/profile', () => {
     [{ phone: 'abc' }, 'Telefone inválido'],
     [{ full_name: 'a'.repeat(101) }, 'Nome muito longo'],
     [{ notify_mfa_reminder: 'sim' }, 'Preferência de aviso inválido'],
+    [{ dashboard_panels: 'salary' }, 'Painéis do resumo inválidos'],
+    [{ dashboard_panels: PANELS.slice(1) }, 'Painéis do resumo inválidos'],
+    [{ dashboard_panels: [...PANELS.slice(1), PANELS[1]] }, 'Painéis do resumo inválidos'],
+    [{ dashboard_panels: [...PANELS.slice(1), { id: 'admin', icon: 'star' }] }, 'Painéis do resumo inválidos'],
+    [{ dashboard_panels: [...PANELS.slice(1), 'salary'] }, 'Painéis do resumo inválidos'],
+    [{ dashboard_panels: [...PANELS.slice(1), { id: 'salary', icon: '<svg>' }] }, 'Ícone inválido'],
     [{}, 'Informe ao menos um campo'],
   ])('valida %j', async (body, message) => {
     const res = await request(app).put('/api/profile').set(AUTH).send(body)

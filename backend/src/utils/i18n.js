@@ -25,6 +25,7 @@ const EN_LABELS = {
   Idioma: 'Language',
   Tema: 'Theme',
   'Preferência de aviso': 'Notification preference',
+  Ícone: 'Icon',
 }
 const label = (pt) => EN_LABELS[pt] ?? pt
 
@@ -67,6 +68,9 @@ const EN_EXACT = {
   'Sessão inválida.': 'Invalid session.',
   'Sessão não encontrada.': 'Session not found.',
   'Para encerrar a sessão atual, use o botão Sair.': 'To end the current session, use the Sign out button.',
+  // Painéis do resumo
+  'Painéis do resumo inválidos: envie todos os painéis, cada um uma vez.':
+    'Invalid summary panels: send every panel, each one once.',
 }
 
 // Mensagens dos validadores, que levam o nome do campo e números no meio.

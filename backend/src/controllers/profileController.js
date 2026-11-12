@@ -14,6 +14,30 @@ export const LANGUAGES = ['pt-BR', 'en']
 export const THEMES = ['auto', 'light', 'dark']
 const NOTIFICATIONS = ['notify_budget_alerts', 'notify_missing_salary', 'notify_mfa_reminder']
 
+// Painéis (cartões) do Resumo que a pessoa pode reordenar e trocar o ícone.
+// Mesmas listas do frontend (src/utils/dashboardPanels.js).
+export const DASHBOARD_PANELS = ['salary', 'spent', 'balance', 'fixed', 'variable', 'percent']
+export const DASHBOARD_ICONS = [
+  'wallet', 'cart', 'scale', 'pin', 'shuffle', 'percent', 'coins', 'creditCard', 'chart',
+  'trendUp', 'trendDown', 'home', 'calendar', 'target', 'star', 'heart', 'bolt', 'gift',
+]
+
+// Lista completa, na ordem de exibição: cada painel exatamente uma vez, com
+// um ícone da lista. null volta ao padrão. Campos extras são descartados.
+function parseDashboardPanels(value) {
+  if (value === null) return null
+  const invalid = new ValidationError('Painéis do resumo inválidos: envie todos os painéis, cada um uma vez.')
+  if (!Array.isArray(value) || value.length !== DASHBOARD_PANELS.length) throw invalid
+
+  const seen = new Set()
+  return value.map((panel) => {
+    if (!panel || typeof panel !== 'object' || Array.isArray(panel)) throw invalid
+    if (!DASHBOARD_PANELS.includes(panel.id) || seen.has(panel.id)) throw invalid
+    seen.add(panel.id)
+    return { id: panel.id, icon: parseOneOf(panel.icon, DASHBOARD_ICONS, 'Ícone') }
+  })
+}
+
 // Lista fechada do que o cliente pode mudar. Qualquer outro campo é ignorado
 // (avatar_path, created_at...). Id de usuário nem chega aqui: o middleware
 // rejectForeignUserId já recusou se fosse de outra pessoa.
@@ -30,6 +54,7 @@ function parseProfileFields(body = {}) {
   for (const key of NOTIFICATIONS) {
     if (sent(key)) fields[key] = parseBoolean(body[key], 'Preferência de aviso')
   }
+  if (sent('dashboard_panels')) fields.dashboard_panels = parseDashboardPanels(body.dashboard_panels)
 
   if (Object.keys(fields).length === 0) {
     throw new ValidationError('Informe ao menos um campo para atualizar.')

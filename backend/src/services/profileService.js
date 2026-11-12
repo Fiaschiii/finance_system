@@ -13,7 +13,7 @@ const AVATAR_URL_TTL_SECONDS = 60 * 60
 
 const SELECT =
   'full_name, phone, avatar_path, language, theme, ' +
-  'notify_budget_alerts, notify_missing_salary, notify_mfa_reminder'
+  'notify_budget_alerts, notify_missing_salary, notify_mfa_reminder, dashboard_panels'
 
 export async function getProfile(supabase, userId) {
   const { data, error } = await supabase
