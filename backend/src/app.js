@@ -29,6 +29,11 @@ app.use(helmet())
 
 app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:5173' }))
 
+// Verificação de saúde da hospedagem (o Render chama de tempos em tempos para
+// saber se o servidor está no ar). Fica antes dos limites: não gasta a cota
+// de ninguém e não consulta o banco.
+app.get('/healthz', (req, res) => res.json({ status: 'ok' }))
+
 // Mensagens de erro no idioma da pessoa (Accept-Language). Fica antes de
 // tudo que pode responder com erro, inclusive os limites abaixo.
 app.use('/api', localizeResponses)

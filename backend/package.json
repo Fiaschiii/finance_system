@@ -4,6 +4,9 @@
   "private": true,
   "description": "Backend do sistema de controle financeiro pessoal",
   "type": "module",
+  "engines": {
+    "node": ">=22.12"
+  },
   "main": "src/server.js",
   "scripts": {
     "dev": "nodemon src/server.js",

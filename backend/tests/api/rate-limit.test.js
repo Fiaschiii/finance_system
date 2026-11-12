@@ -44,6 +44,19 @@ describe('limite de requisições por IP', () => {
     expect(blocked.body.retryAfter).toBeLessThanOrEqual(60)
   })
 
+  it('/healthz (verificação da hospedagem) não conta para o limite e responde mesmo com o IP barrado', async () => {
+    const app = await appWith({ RATE_LIMIT_BURST: '1' })
+
+    for (let i = 0; i < 5; i++) {
+      const res = await request(app).get('/healthz')
+      expect(res.status).toBe(200)
+      expect(res.body).toEqual({ status: 'ok' })
+    }
+    expect((await request(app).get('/api/health')).status).toBe(200)
+    expectRateLimited(await request(app).get('/api/health'))
+    expect((await request(app).get('/healthz')).status).toBe(200)
+  })
+
   it('barrado antes de validar o token: não consulta o Supabase', async () => {
     const app = await appWith({ RATE_LIMIT_BURST: '1' })
     const { createClient } = await import('@supabase/supabase-js')
