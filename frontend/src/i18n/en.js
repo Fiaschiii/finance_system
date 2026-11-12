@@ -20,6 +20,7 @@ export default {
   'nav.history': 'History',
   'nav.settings': 'Settings',
   'nav.account': 'My account',
+  'nav.myProfile': 'My profile',
   'nav.signOut': 'Sign out',
   'nav.signIn': 'Sign in',
   'nav.openMenu': 'Open menu',
@@ -110,13 +111,6 @@ export default {
   'api.backendDown': 'Could not reach the backend at {url}. Check that it is running (npm run dev in the backend folder).',
   'api.errorStatus': 'Error {status}',
   'api.retryIn': '{message} (available in {wait})',
-  'status.checking': 'Checking the connection to Supabase…',
-  'status.backendDown':
-    'Could not reach the backend at {url}. Check that it is running (npm run dev in the backend folder) with no errors in the terminal.',
-  'status.notConfigured':
-    'Supabase is not configured yet. Fill in SUPABASE_URL and the publishable key in backend/.env and frontend/.env.',
-  'status.connected': 'Connected to Supabase',
-  'status.unreachable': 'Could not reach Supabase{details}. Check the URL and the key in backend/.env.',
 
   // Months
   'month.prev': 'Previous month ({month})',
@@ -246,10 +240,35 @@ export default {
   'settings.newCategory': 'New category',
   'settings.categoriesIntro':
     'Categories organize your expenses and are the basis for budgets. A category that already has expenses cannot be deleted, but it can be renamed.',
-  'settings.accountTitle': 'Account, security and appearance',
-  'settings.accountText': 'Password, two-step verification, sessions, theme and language are in {link}.',
-  'settings.connection': 'Connection',
-  'settings.connectionIntro': 'If something does not load, check here whether the app can reach the server and the database.',
+  'panels.title': 'Summary panels',
+  'panels.intro': 'Choose the order of the panels on the Summary and the icon of each one. Changes are saved right away.',
+  'panels.restore': 'Restore default',
+  'panels.moveUp': 'Move {name} up',
+  'panels.moveDown': 'Move {name} down',
+  'panels.changeIcon': 'Change icon',
+  'panels.changeIconOf': 'Change icon of {name}',
+  'panels.iconOf': 'Icon of {name}',
+  'panels.saved': 'Panels saved.',
+
+  // Panel icons
+  'icon.wallet': 'Wallet',
+  'icon.cart': 'Cart',
+  'icon.scale': 'Scale',
+  'icon.pin': 'Pin',
+  'icon.shuffle': 'Crossed arrows',
+  'icon.percent': 'Percent',
+  'icon.coins': 'Coins',
+  'icon.creditCard': 'Credit card',
+  'icon.chart': 'Chart',
+  'icon.trendUp': 'Trending up',
+  'icon.trendDown': 'Trending down',
+  'icon.home': 'Home',
+  'icon.calendar': 'Calendar',
+  'icon.target': 'Target',
+  'icon.star': 'Star',
+  'icon.heart': 'Heart',
+  'icon.bolt': 'Lightning',
+  'icon.gift': 'Gift',
 
   // Theme
   'theme.auto': 'Automatic (same as the system)',

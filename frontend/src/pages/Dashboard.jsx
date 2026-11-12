@@ -5,9 +5,11 @@ import { useCategories } from '../hooks/useCategories.js'
 import { useExpenses } from '../hooks/useExpenses.js'
 import { useBudgets } from '../hooks/useBudgets.js'
 import { useToast } from '../hooks/useToast.jsx'
+import { useProfile } from '../hooks/useProfile.jsx'
 import { usePageTitle } from '../hooks/usePageTitle.js'
 import { useRouteReady } from '../hooks/useRouteLoading.jsx'
 import { formatBRL, sumMoney, subtractMoney } from '../utils/currency.js'
+import { resolvePanels } from '../utils/dashboardPanels.js'
 import { formatMonthYear, monthRange, toISODate, parseMonthParam, toMonthParam } from '../utils/date.js'
 import DashboardCard from '../components/DashboardCard.jsx'
 import SalaryForm from '../components/SalaryForm.jsx'
@@ -59,6 +61,8 @@ function MonthSummary({ month, year, current, onChangeMonth, categoriesState }) 
   const { finance } = financeState
   const expensesState = useExpenses(month, year)
   const budgetsState = useBudgets(month, year)
+  const { profile } = useProfile()
+  const panels = resolvePanels(profile?.dashboard_panels)
 
   const [editingSalary, setEditingSalary] = useState(false)
   const [addingExpense, setAddingExpense] = useState(false)
@@ -95,6 +99,33 @@ function MonthSummary({ month, year, current, onChangeMonth, categoriesState }) 
   const salary = Number(finance?.salary ?? 0)
   const spentPercent = salary > 0 ? Math.round((totalSpent / salary) * 100) : null
   const isCurrentMonth = month === current.month && year === current.year
+
+  // Conteúdo de cada painel; a ordem e o ícone vêm do perfil (Configurações).
+  const cards = {
+    salary: {
+      value: formatBRL(finance?.salary ?? 0),
+      children: !editingSalary && (
+        <button
+          type="button"
+          className="action-button"
+          aria-label={salary === 0 ? undefined : t('dashboard.editSalary')}
+          onClick={() => setEditingSalary(true)}
+        >
+          {salary === 0 ? t('dashboard.informSalary') : t('common.edit')}
+        </button>
+      ),
+    },
+    spent: { value: formatBRL(totalSpent) },
+    balance: { value: formatBRL(balance), tone: balance < 0 ? 'negative' : 'positive' },
+    fixed: { value: formatBRL(fixedTotal) },
+    variable: { value: formatBRL(variableTotal) },
+    // Sem salário, não há porcentagem para mostrar.
+    percent: spentPercent !== null && {
+      value: `${spentPercent}%`,
+      tone: spentPercent > 100 ? 'negative' : undefined,
+      progress: spentPercent,
+    },
+  }
 
   function reloadAll() {
     financeState.reload()
@@ -175,36 +206,16 @@ function MonthSummary({ month, year, current, onChangeMonth, categoriesState }) 
 
           {finance && (
             <div className="dashboard-cards">
-              <DashboardCard label={t('card.salary')} icon="wallet" value={formatBRL(finance.salary)}>
-                {!editingSalary && (
-                  <button
-                    type="button"
-                    className="action-button"
-                    aria-label={salary === 0 ? undefined : t('dashboard.editSalary')}
-                    onClick={() => setEditingSalary(true)}
-                  >
-                    {salary === 0 ? t('dashboard.informSalary') : t('common.edit')}
-                  </button>
-                )}
-              </DashboardCard>
-              <DashboardCard label={t('card.spent')} icon="cart" value={formatBRL(totalSpent)} />
-              <DashboardCard
-                label={t('card.balance')}
-                icon="scale"
-                value={formatBRL(balance)}
-                tone={balance < 0 ? 'negative' : 'positive'}
-              />
-              <DashboardCard label={t('card.fixed')} icon="pin" value={formatBRL(fixedTotal)} />
-              <DashboardCard label={t('card.variable')} icon="shuffle" value={formatBRL(variableTotal)} />
-              {spentPercent !== null && (
-                <DashboardCard
-                  label={t('card.percent')}
-                  icon="percent"
-                  value={`${spentPercent}%`}
-                  tone={spentPercent > 100 ? 'negative' : undefined}
-                  progress={spentPercent}
-                />
-              )}
+              {panels.map((panel) => {
+                const card = cards[panel.id]
+                if (!card) return null
+                const { children, ...props } = card
+                return (
+                  <DashboardCard key={panel.id} label={t(panel.labelKey)} icon={panel.icon} {...props}>
+                    {children}
+                  </DashboardCard>
+                )
+              })}
             </div>
           )}
 

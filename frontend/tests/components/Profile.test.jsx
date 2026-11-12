@@ -192,10 +192,11 @@ describe('Dados cadastrais', () => {
     expectNoUserIdSent()
   })
 
-  it('o cabeçalho mostra o nome e leva para Minha conta', async () => {
+  it('o cabeçalho mostra a foto (ou iniciais) com "Meu Perfil" e leva para Minha conta', async () => {
     renderProfile()
-    const link = await screen.findByRole('link', { name: /Ana Souza/ })
+    const link = await screen.findByRole('link', { name: /Meu Perfil/ })
     expect(link).toHaveAttribute('href', '/profile')
+    await waitFor(() => expect(link).toHaveAttribute('title', 'Minha conta (Ana Souza)'))
     expect(within(link).getByText('AS')).toBeInTheDocument() // iniciais, sem foto
   })
 

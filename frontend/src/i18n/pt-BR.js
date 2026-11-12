@@ -22,6 +22,7 @@ export default {
   'nav.history': 'Histórico',
   'nav.settings': 'Configurações',
   'nav.account': 'Minha conta',
+  'nav.myProfile': 'Meu Perfil',
   'nav.signOut': 'Sair',
   'nav.signIn': 'Entrar',
   'nav.openMenu': 'Abrir menu',
@@ -113,13 +114,6 @@ export default {
     'Não consegui falar com o backend em {url}. Confira se ele está rodando (npm run dev na pasta backend).',
   'api.errorStatus': 'Erro {status}',
   'api.retryIn': '{message} (liberado em {wait})',
-  'status.checking': 'Verificando conexão com o Supabase…',
-  'status.backendDown':
-    'Não consegui falar com o backend em {url}. Confira se ele está rodando (npm run dev na pasta backend) e sem erros no terminal.',
-  'status.notConfigured':
-    'Supabase ainda não configurado. Preencha SUPABASE_URL e a chave publishable no backend/.env e no frontend/.env.',
-  'status.connected': 'Conectado ao Supabase',
-  'status.unreachable': 'Não consegui alcançar o Supabase{details}. Confira a URL e a chave em backend/.env.',
 
   // Meses
   'month.prev': 'Mês anterior ({month})',
@@ -249,10 +243,35 @@ export default {
   'settings.newCategory': 'Nova categoria',
   'settings.categoriesIntro':
     'As categorias organizam seus gastos e são a base das caixinhas. Uma categoria que já tem gastos não pode ser excluída, mas pode ser renomeada.',
-  'settings.accountTitle': 'Conta, segurança e aparência',
-  'settings.accountText': 'Senha, verificação em duas etapas, sessões, tema e idioma ficam em {link}.',
-  'settings.connection': 'Conexão',
-  'settings.connectionIntro': 'Se algo não carregar, confira aqui se o sistema está falando com o servidor e com o banco.',
+  'panels.title': 'Painéis do Resumo',
+  'panels.intro': 'Escolha a ordem em que os painéis aparecem no Resumo e o ícone de cada um. As mudanças são salvas na hora.',
+  'panels.restore': 'Restaurar padrão',
+  'panels.moveUp': 'Subir {name}',
+  'panels.moveDown': 'Descer {name}',
+  'panels.changeIcon': 'Trocar ícone',
+  'panels.changeIconOf': 'Trocar ícone de {name}',
+  'panels.iconOf': 'Ícone de {name}',
+  'panels.saved': 'Painéis salvos.',
+
+  // Ícones dos painéis
+  'icon.wallet': 'Carteira',
+  'icon.cart': 'Carrinho',
+  'icon.scale': 'Balança',
+  'icon.pin': 'Alfinete',
+  'icon.shuffle': 'Setas cruzadas',
+  'icon.percent': 'Porcentagem',
+  'icon.coins': 'Moedas',
+  'icon.creditCard': 'Cartão de crédito',
+  'icon.chart': 'Gráfico',
+  'icon.trendUp': 'Tendência de alta',
+  'icon.trendDown': 'Tendência de queda',
+  'icon.home': 'Casa',
+  'icon.calendar': 'Calendário',
+  'icon.target': 'Alvo',
+  'icon.star': 'Estrela',
+  'icon.heart': 'Coração',
+  'icon.bolt': 'Raio',
+  'icon.gift': 'Presente',
 
   // Tema
   'theme.auto': 'Automático (igual ao sistema)',

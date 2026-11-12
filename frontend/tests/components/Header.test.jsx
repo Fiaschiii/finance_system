@@ -19,11 +19,12 @@ function renderHeader(user = { id: 'u1', email: 'ana@exemplo.com' }, mfaPending 
 }
 
 describe('Header', () => {
-  it('logado: mostra os links e o e-mail', () => {
+  it('logado: mostra os links e "Meu Perfil" no lugar do e-mail (que fica só na dica do mouse)', () => {
     renderHeader()
     expect(screen.getByRole('link', { name: 'Resumo' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Histórico' })).toBeInTheDocument()
-    expect(screen.getByText('ana@exemplo.com')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Meu Perfil/ })).toHaveAttribute('title', 'Minha conta (ana@exemplo.com)')
+    expect(screen.queryByText('ana@exemplo.com')).not.toBeInTheDocument()
   })
 
   it('botão de menu (celular) abre e fecha, avisando o estado', async () => {

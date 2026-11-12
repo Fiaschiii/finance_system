@@ -77,10 +77,11 @@ function Header() {
               <NavLink
                 to="/profile"
                 className={({ isActive }) => `app-header__profile${isActive ? ' active' : ''}`}
-                title={`${t('nav.account')} (${user.email})`}
+                // O nome/e-mail continua no title: passando o mouse, dá para ver com qual conta entrou.
+                title={`${t('nav.account')} (${displayName})`}
               >
                 <Avatar url={profile?.avatar_url} name={displayName} size={28} />
-                <span className="app-header__user">{displayName}</span>
+                <span className="app-header__user">{t('nav.myProfile')}</span>
               </NavLink>
               <button type="button" className="app-header__logout" onClick={handleLogout}>
                 <SignOutIcon size={16} className="nav-icon nav-icon--signout" /> {t('nav.signOut')}

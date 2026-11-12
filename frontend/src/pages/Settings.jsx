@@ -1,18 +1,18 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import { useCategories } from '../hooks/useCategories.js'
 import { useToast } from '../hooks/useToast.jsx'
 import { usePageTitle } from '../hooks/usePageTitle.js'
 import { useRouteReady } from '../hooks/useRouteLoading.jsx'
-import { Trans, useI18n } from '../i18n/index.jsx'
+import { useI18n } from '../i18n/index.jsx'
 import CategoryForm from '../components/CategoryForm.jsx'
 import CategoryList from '../components/CategoryList.jsx'
-import SupabaseStatus from '../components/SupabaseStatus.jsx'
+import DashboardPanelsSettings from '../components/DashboardPanelsSettings.jsx'
 import Icon from '../components/Icon.jsx'
 import { SkeletonRows, LoadingLabel } from '../components/Skeleton.jsx'
 
-// Configurações do sistema (categorias e conexão). O que é da CONTA (senha,
-// verificação em duas etapas, sessões, tema, idioma) fica em Minha conta.
+// Configurações de como o sistema aparece: os painéis do Resumo (ordem e
+// ícone) e as categorias. O que é da CONTA (senha, verificação em duas
+// etapas, sessões, tema, idioma) fica em Minha conta.
 function Settings() {
   usePageTitle('settings.title')
   const { t } = useI18n()
@@ -31,6 +31,8 @@ function Settings() {
   return (
     <section className="page">
       <h1>{t('settings.title')}</h1>
+
+      <DashboardPanelsSettings />
 
       <div className="settings-section">
         <div className="section-header">
@@ -69,18 +71,6 @@ function Settings() {
         )}
       </div>
 
-      <div className="settings-section">
-        <h2>{t('settings.accountTitle')}</h2>
-        <p>
-          <Trans k="settings.accountText" link={<Link to="/profile">{t('nav.account')}</Link>} />
-        </p>
-      </div>
-
-      <div className="settings-section">
-        <h2>{t('settings.connection')}</h2>
-        <p>{t('settings.connectionIntro')}</p>
-        <SupabaseStatus />
-      </div>
     </section>
   )
 }
