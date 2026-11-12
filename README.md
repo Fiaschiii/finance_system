@@ -56,7 +56,7 @@ Copie `backend/.env.example` para `backend/.env` e `frontend/.env.example` para 
 
 - **Resumo**: o mês atual, com salário, gastos, saldo e % do salário gasto. As setas ‹ › trocam o mês, e o mês escolhido fica no endereço (`/?mes=2026-10`): dá para recarregar a página ou salvar nos favoritos sem perder o mês. Os gastos ficam logo abaixo dos cartões; o gráfico por categoria e as caixinhas, lado a lado.
 - **Histórico**: gráfico de salário × gastos e a lista de todos os meses. Clique no mês para ver e editar os gastos ali mesmo, ou em "Ver resumo" para abri-lo no Resumo.
-- **Configurações**: categorias e o teste de **conexão** com o servidor e o banco.
+- **Configurações**: como o sistema aparece — a **ordem** e o **ícone** de cada painel do Resumo (salvos no perfil, valem em qualquer navegador) e as **categorias**.
 - **Minha conta**: dados cadastrais (foto, nome, telefone, e-mail), segurança (senha, verificação em duas etapas, sessões ativas) e preferências (idioma, tema e avisos). Ver [Etapa 18](#minha-conta-etapa-18).
 - Cada ação (salvar, editar, excluir) mostra um aviso rápido no canto da tela.
 - Ao trocar de página, uma tela de carregamento com o ícone do sistema cobre o conteúdo até os dados chegarem (no mínimo ~0,5 s, para não piscar). Trocar só o mês no Resumo não a mostra.
@@ -148,7 +148,7 @@ Autogestão do perfil (*self-service profile management*): cada pessoa cuida da 
 O backend nunca confia num id de usuário que venha da requisição. O "Usuário A" não consegue ver nem alterar nada do "Usuário B" mexendo na URL ou no corpo da requisição, e isso vale em quatro camadas:
 
 1. **Não há endereço para o perfil de outra pessoa.** As rotas são `/api/profile`, `/api/profile/avatar` e `/api/profile/sessions`, sem id de usuário. `/api/profile/<id-de-alguém>` responde 404.
-2. **O id vem do token.** O `requireAuth` valida o token com o Supabase e guarda `req.user.id`; os serviços filtram e gravam sempre com ele. O controller só aceita uma lista fechada de campos (nome, telefone, idioma, tema, avisos): o resto é ignorado.
+2. **O id vem do token.** O `requireAuth` valida o token com o Supabase e guarda `req.user.id`; os serviços filtram e gravam sempre com ele. O controller só aceita uma lista fechada de campos (nome, telefone, idioma, tema, avisos, painéis do Resumo): o resto é ignorado.
 3. **Id de outra pessoa na requisição é recusado.** Se o corpo ou a query trouxerem `id`, `user_id`, `userId`, `owner` ou `owner_id` diferente do logado, a resposta é **403** (`code: "forbidden_user"`), nada é gravado e a tentativa fica no log do servidor (`[segurança] usuário … tentou usar user_id=…`).
 4. **O banco confere de novo (RLS).** A tabela `profiles` tem o próprio id do usuário como chave, e só `auth.uid() = id` lê ou altera. A foto só pode ficar na pasta `<id do dono>/` do bucket. As funções de sessões não recebem id de usuário: usam `auth.uid()`, então pedir para encerrar a sessão de outra pessoa simplesmente não encontra nada.
 
@@ -187,7 +187,7 @@ Use `npm run test:watch` para rodar de novo a cada arquivo salvo.
 
 - `utils/`: leitura de valores digitados no formato brasileiro (`1.200,50`, `R$ 1.200`), formatação de moeda, somas em centavos, datas sem erro de fuso e tradução das mensagens do Supabase.
 - `services/api.test.js`: envio do token, mensagens de erro, resposta sem corpo, backend desligado, aviso de 429 com o tempo de espera e leituras iguais agrupadas (sem reaproveitar leitura antiga depois de uma gravação).
-- `components/SupabaseStatus.test.jsx`: o teste de conexão mostra o aviso de limite em vez de "não configurado".
+- `components/DashboardPanelsSettings.test.jsx` e `utils/dashboard-panels.test.js`: subir/descer e trocar o ícone dos painéis salva a lista completa no perfil, "Restaurar padrão" grava `null`, recusa do servidor desfaz a mudança, o Resumo mostra os cartões na ordem e com os ícones salvos, e dado salvo estranho (painel repetido ou desconhecido, ícone que não existe) não quebra a tela.
 - `components/`: formulários de salário e de gasto (validação, valores enviados, edição), rotas protegidas (sem login vai para o login), tela de cadastro (senha mínima de 8 caracteres), cabeçalho com menu de celular, seletor de mês, avisos rápidos, tela de carregamento entre páginas e a troca de mês no Resumo (inclusive quando uma resposta antiga chega atrasada).
 - `utils/mfa.test.js` e `components/Mfa.test.jsx`: leitura do nível da sessão, a tela do código (certo, errado, sair) e ativar/cancelar/desativar em Configurações.
 - `config/csp.test.js`, `components/Captcha.test.jsx` e `components/IdleLogout.test.jsx`: o que a CSP libera e bloqueia, o CAPTCHA travando o botão até a verificação e renovando o comprovante a cada tentativa, e a contagem de inatividade (aviso, saída só deste navegador, uso em outra aba, mensagem no login).
@@ -211,6 +211,7 @@ O que protege os dados:
 3. **Authentication → URL Configuration**: em **Site URL**, coloque `http://localhost:5173`. Em **Redirect URLs**, coloque `http://localhost:5173/reset-password`. Assim, o link de "esqueci minha senha" só leva de volta para o seu sistema.
 4. **SQL Editor** (Etapa 15): rode `database/migrations/0004_mfa_enforcement.sql` e depois, de novo, o `verificar_seguranca.sql`.
    - **Etapa 18:** rode `database/migrations/0005_profile.sql` e depois, de novo, o `verificar_seguranca.sql`. Em **Authentication → URL Configuration → Redirect URLs**, acrescente `http://localhost:5173/profile` (para onde leva o link de confirmação da troca de e-mail).
+   - **Painéis do Resumo:** rode `database/migrations/0006_dashboard_panels.sql` e depois, de novo, o `verificar_seguranca.sql`.
 5. **Authentication → Multi-Factor**: confira que **TOTP (App Authenticator)** está habilitado (é o padrão).
 6. **Advisors → Security Advisor**: não deve sobrar nenhum item em vermelho (*Error*) nas tabelas do projeto.
 7. Nunca coloque a chave **secret** (antiga `service_role`) em nenhum `.env` deste projeto. Ela ignora o RLS e o sistema não precisa dela.
