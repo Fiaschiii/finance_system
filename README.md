@@ -190,6 +190,7 @@ Use `npm run test:watch` para rodar de novo a cada arquivo salvo.
 
 - `utils/`: leitura de valores digitados no formato brasileiro (`1.200,50`, `R$ 1.200`), formatação de moeda, somas em centavos, datas sem erro de fuso e tradução das mensagens do Supabase.
 - `services/api.test.js`: envio do token, mensagens de erro, resposta sem corpo, backend desligado, aviso de 429 com o tempo de espera e leituras iguais agrupadas (sem reaproveitar leitura antiga depois de uma gravação).
+- `components/Profile.test.jsx` e `components/DashboardAlerts.test.jsx` (conta de demonstração): senha, e-mail, MFA, nome, telefone, foto e encerrar sessões aparecem desligados com o aviso do motivo; preferências continuam livres; sem o lembrete de MFA. No backend, `api/profile.test.js` confere o 403 (`demo_locked`) em cada uma dessas rotas, inclusive quando quem recusa é o banco.
 - `components/DashboardPanelsSettings.test.jsx` e `utils/dashboard-panels.test.js`: subir/descer e trocar o ícone dos painéis salva a lista completa no perfil, "Restaurar padrão" grava `null`, recusa do servidor desfaz a mudança, o Resumo mostra os cartões na ordem e com os ícones salvos, e dado salvo estranho (painel repetido ou desconhecido, ícone que não existe) não quebra a tela.
 - `components/`: formulários de salário e de gasto (validação, valores enviados, edição), rotas protegidas (sem login vai para o login), tela de cadastro (senha mínima de 8 caracteres), cabeçalho com menu de celular, seletor de mês, avisos rápidos, tela de carregamento entre páginas e a troca de mês no Resumo (inclusive quando uma resposta antiga chega atrasada).
 - `utils/mfa.test.js` e `components/Mfa.test.jsx`: leitura do nível da sessão, a tela do código (certo, errado, sair) e ativar/cancelar/desativar em Configurações.
@@ -215,6 +216,7 @@ O que protege os dados:
 4. **SQL Editor** (Etapa 15): rode `database/migrations/0004_mfa_enforcement.sql` e depois, de novo, o `verificar_seguranca.sql`.
    - **Etapa 18:** rode `database/migrations/0005_profile.sql` e depois, de novo, o `verificar_seguranca.sql`. Em **Authentication → URL Configuration → Redirect URLs**, acrescente `http://localhost:5173/profile` (para onde leva o link de confirmação da troca de e-mail).
    - **Painéis do Resumo:** rode `database/migrations/0006_dashboard_panels.sql` e depois, de novo, o `verificar_seguranca.sql`.
+   - **Conta de demonstração:** rode `database/migrations/0007_demo_account.sql` e depois, de novo, o `verificar_seguranca.sql` (ver [Publicação gratuita](#5-e-mails-e-conta-de-demonstração)).
 5. **Authentication → Multi-Factor**: confira que **TOTP (App Authenticator)** está habilitado (é o padrão).
 6. **Advisors → Security Advisor**: não deve sobrar nenhum item em vermelho (*Error*) nas tabelas do projeto.
 7. Nunca coloque a chave **secret** (antiga `service_role`) em nenhum `.env` deste projeto. Ela ignora o RLS e o sistema não precisa dela.
@@ -234,7 +236,7 @@ Os dois serviços publicam de novo sozinhos a cada `git push` na branch `main`.
 ### Antes de começar
 
 1. O repositório precisa estar no GitHub (pode ser público).
-2. No Supabase, todas as migrações (`0001` a `0006`) precisam ter sido rodadas, e o `database/checks/verificar_seguranca.sql` deve mostrar tudo ✅.
+2. No Supabase, todas as migrações (`0001` a `0006`, e a `0007` se for usar a conta de demonstração) precisam ter sido rodadas, e o `database/checks/verificar_seguranca.sql` deve mostrar tudo ✅.
 3. **Escolha o nome do projeto na Cloudflare** (ex.: `controle-financeiro`). O endereço do site será `https://<nome>.pages.dev`, e o backend precisa saber disso desde o início. Se o nome já existir, a Cloudflare acrescenta um sufixo: confira no passo 2 e, se mudou, atualize o `FRONTEND_URL` no Render.
 
 Nos passos abaixo, troque `<nome>` e `<backend>` pelos seus endereços. **Nenhum endereço leva barra no fim.**
@@ -295,9 +297,28 @@ No painel da Cloudflare, **Turnstile → seu widget → Hostname management**: a
 
 O envio de e-mails embutido no Supabase manda **poucos e-mails por hora para o projeto inteiro**. Se várias pessoas se cadastrarem no mesmo dia, a confirmação de e-mail falha. Há duas saídas, que podem ser usadas juntas:
 
-- **Conta de demonstração (recomendado)**: cadastre uma conta pelo próprio site (ex.: `demo@<seu-dominio>` ou um e-mail seu), confirme o e-mail, lance alguns meses de salário e gastos fictícios e publique o login e a senha no topo deste README. Quem visita entra direto, sem cadastro.
-  - **Não ative** a verificação em duas etapas nessa conta: o visitante não teria o código.
-  - Qualquer visitante pode mudar a senha, o e-mail ou apagar os dados dessa conta. Confira de vez em quando se ela continua funcionando; se alguém trocar a senha, redefina pelo painel do Supabase (**Authentication → Users**).
+- **Conta de demonstração (recomendado)**: uma conta com login e senha publicados no topo deste README. Quem visita entra direto, sem cadastro. Para criar:
+  1. Rode `database/migrations/0007_demo_account.sql` no SQL Editor (a trava da conta, explicada abaixo).
+  2. Cadastre a conta pelo próprio site (ex.: `demo@<seu-dominio>` ou um e-mail seu) e confirme o e-mail.
+  3. Ainda sem a trava, ajuste nome e foto se quiser e lance alguns meses de salário e gastos **fictícios**. **Não ative** a verificação em duas etapas.
+  4. No SQL Editor, marque a conta como demonstração:
+     ```sql
+     insert into private.demo_accounts (user_id)
+     select id from auth.users where email = 'demo@<seu-dominio>';
+     ```
+  5. Entre com ela no site: em **Minha conta**, os botões travados aparecem desligados, com o aviso "Conta de demonstração".
+
+  **A trava** existe porque todos os visitantes usam a mesma conta: sem ela, um só visitante poderia trocar a senha (e ninguém mais entraria), ativar a verificação em duas etapas (idem), pôr nome ou foto ofensivos ou derrubar os outros visitantes. Na conta marcada, ficam travados **senha, e-mail, verificação em duas etapas, nome, telefone, foto e encerrar sessões**. Continuam livres salários, gastos, categorias, caixinhas, painéis do Resumo, idioma, tema e avisos: é o que mostra o sistema funcionando.
+
+  Quem recusa é o **banco** (gatilhos e políticas da `0007`), não só a tela: vale mesmo para quem tentar falar direto com a API do Supabase. Ninguém consegue tirar a marca pelo site; só você, pelo SQL Editor. Contas normais não mudam em nada.
+
+  Para mexer você mesmo na conta (ex.: redefinir a senha ou trocar a foto), tire a marca, faça a mudança e marque de novo:
+  ```sql
+  delete from private.demo_accounts
+  where user_id = (select id from auth.users where email = 'demo@<seu-dominio>');
+  ```
+
+  Os dados de exemplo (gastos, caixinhas) continuam podendo ser apagados por um visitante. Confira de vez em quando e, se precisar, lance de novo.
 - **SMTP próprio**: em **Authentication → Emails → SMTP Settings**, configure um serviço como o [Resend](https://resend.com) (plano gratuito). Para mandar e-mail a qualquer pessoa, ele exige um **domínio próprio** verificado; sem domínio, fique só com a conta de demonstração.
 
 Deixe claro, na tela inicial do portfólio ou no README, que é uma demonstração: **ninguém deve colocar dados financeiros reais ali**.
