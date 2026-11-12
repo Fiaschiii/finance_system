@@ -52,6 +52,7 @@ Rodei a migração inteira num Postgres local (simulando `auth.users` e `auth.ui
 | `migrations/0003_security_hardening.sql` | **Uma vez, depois da 0001** (Etapa 12). Reforça a segurança: chaves estrangeiras do mesmo dono, políticas só para logados, limites de texto e funções protegidas |
 | `migrations/0004_mfa_enforcement.sql` | **Uma vez, depois da 0003** (Etapa 15). Quem ativou o app autenticador só lê e grava os dados depois de digitar o código (sessão `aal2`) |
 | `migrations/0005_profile.sql` | **Uma vez, depois da 0004** (Etapa 18). Perfil (`profiles`), fotos (bucket `avatars`), funções de sessões ativas e a regra que derruba na hora o token de uma sessão encerrada |
+| `migrations/0006_dashboard_panels.sql` | **Uma vez, depois da 0005.** Ordem e ícone dos painéis do Resumo (`profiles.dashboard_panels`), escolhidos em Configurações |
 | `checks/verificar_seguranca.sql` | **Quando quiser.** Só lê o banco e mostra ✅/❌ para cada item de segurança |
 
 Novas mudanças de schema devem virar `0006_*.sql`, `0007_*.sql` etc. — nunca edite um script depois que ele já tiver sido rodado em algum ambiente.
@@ -130,3 +131,14 @@ A `0005` foi aplicada depois de `0001` → `0004` num PostgreSQL 18 local, simul
 
 Não foi possível rodar contra o seu projeto real. Dois pontos dependem do Supabase de verdade e valem conferir depois de rodar: o papel `postgres` (dono das funções) precisa poder apagar linhas de `auth.sessions` (a página Minha conta → Segurança → **Encerrar** mostra o erro se não puder), e o token precisa trazer o `session_id` (os tokens atuais do Supabase trazem).
 
+## Painéis do Resumo (0006)
+
+A migração `0006_dashboard_panels.sql` adiciona `profiles.dashboard_panels` (`jsonb`): a ordem e o ícone dos 6 painéis do Resumo, que a pessoa escolhe em **Configurações**. Fica no perfil, como tema e idioma, então acompanha a pessoa em qualquer navegador. `null` é o padrão do sistema.
+
+- Formato: `[{"id": "salary", "icon": "wallet"}, {"id": "spent", "icon": "cart"}, ...]`, na ordem de exibição.
+- A *check constraint* `profiles_dashboard_panels_check` (via `private.dashboard_panels_valid`) exige os 6 painéis (`salary`, `spent`, `balance`, `fixed`, `variable`, `percent`), cada um uma vez, só com `id` e `icon`, e ícone com nome simples (só letras). A lista exata de ícones fica no backend: um ícone novo não precisa de migração, e o frontend usa o ícone padrão se receber um que não conhece.
+- O `verificar_seguranca.sql` ganha 1 item novo.
+
+### Testado antes da entrega
+
+A função e a constraint foram aplicadas num PostgreSQL 18 local: uma lista válida (reordenada, com ícone trocado) foi gravada pelo papel `authenticated`; objeto, texto, lista vazia, painel repetido, painel desconhecido, ícone `<svg>`, ícone ausente, ícone numérico, campo extra e item que não é objeto foram recusados.

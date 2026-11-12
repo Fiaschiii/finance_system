@@ -97,6 +97,9 @@ from (
            'profiles_full_name_check', 'profiles_phone_check', 'profiles_avatar_path_check',
            'profiles_language_check', 'profiles_theme_check')), 7
   union all
+  select 'Perfil: painéis do Resumo validados pelo banco (6 painéis, cada um uma vez)',
+         exists (select 1 from checks where conname = 'profiles_dashboard_panels_check'), 7
+  union all
   select 'Sessão encerrada recusada pelo banco em ' || t.tabela,
          exists (select 1 from pg_policies
                  where schemaname = 'public' and tablename = t.tabela
