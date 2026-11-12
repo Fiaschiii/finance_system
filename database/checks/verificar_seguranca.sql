@@ -130,5 +130,23 @@ from (
          coalesce(not has_function_privilege('authenticated', to_regprocedure('public.handle_new_user_profile()'), 'execute')
                   and not has_function_privilege('anon', to_regprocedure('public.handle_new_user_profile()'), 'execute'),
                   false), 9
+  union all
+  select 'Conta de demonstração: a lista não pode ser lida nem alterada pelos usuários',
+         coalesce(not has_table_privilege('authenticated', to_regclass('private.demo_accounts'), 'select')
+                  and not has_table_privilege('authenticated', to_regclass('private.demo_accounts'), 'insert,update,delete')
+                  and not has_table_privilege('anon', to_regclass('private.demo_accounts'), 'select'),
+                  false), 10
+  union all
+  select 'Conta de demonstração: senha, e-mail, MFA, nome/telefone/foto e sessões travados',
+         (select count(*) = 3 from pg_trigger
+          where not tgisinternal
+            and tgname in ('protect_demo_user', 'protect_demo_mfa', 'protect_demo_profile'))
+         and (select count(*) = 3 from pg_policies
+              where schemaname = 'storage' and tablename = 'objects'
+                and policyname like 'avatars: demo não %' and permissive = 'RESTRICTIVE')
+         and coalesce((select bool_and(pg_get_functiondef(p.oid) like '%demo_account_locked%')
+                       from pg_proc p
+                       where p.oid in (to_regprocedure('public.revoke_my_session(uuid)'),
+                                       to_regprocedure('public.revoke_my_other_sessions()'))), false), 10
 ) resultado
 order by ordem, item;
