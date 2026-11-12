@@ -1311,6 +1311,19 @@ path.monthly-chart__bar--spent {
   accent-color: var(--color-accent);
 }
 
+/* Agrupa campos só para desligar tudo de uma vez (conta de demonstração),
+   sem a borda e o espaço que o navegador põe num fieldset. */
+.plain-fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.plain-fieldset:disabled {
+  opacity: 0.6;
+}
+
 /* Painéis do Resumo (ordem e ícone) */
 
 .panel-list {

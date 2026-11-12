@@ -401,3 +401,43 @@ describe('Preferências', () => {
     expect(document.documentElement.dataset.theme).toBe('dark')
   })
 })
+
+describe('conta de demonstração', () => {
+  const LOCK = 'Conta de demonstração: esta parte fica travada para que todos os visitantes continuem conseguindo entrar.'
+
+  beforeEach(() => {
+    profile.is_demo = true
+  })
+
+  it('Dados cadastrais: foto, nome, telefone e e-mail desligados, com o aviso do motivo', async () => {
+    renderProfile()
+    expect(await screen.findAllByText(LOCK)).toHaveLength(2) // dados + e-mail
+    expect(screen.getByRole('button', { name: 'Adicionar foto' })).toBeDisabled()
+    expect(screen.getByLabelText('Nome')).toBeDisabled()
+    expect(screen.getByLabelText('Telefone')).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Salvar dados' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Trocar e-mail' })).toBeDisabled()
+  })
+
+  it('Segurança: senha, ativar MFA e encerrar sessões desligados; a lista de sessões continua visível', async () => {
+    renderProfile('/profile?aba=seguranca')
+    expect(await screen.findByRole('button', { name: /Ativar/ })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Alterar senha' })).toBeDisabled()
+    expect(await screen.findByRole('button', { name: 'Encerrar sessão: Safari no iOS' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Encerrar todas as outras' })).toBeDisabled()
+    expect(screen.getAllByText(LOCK).length).toBeGreaterThanOrEqual(3)
+  })
+
+  it('Preferências continuam livres', async () => {
+    renderProfile('/profile?aba=preferencias')
+    expect(await screen.findByLabelText('Escuro')).toBeEnabled()
+    expect(screen.queryByText(LOCK)).not.toBeInTheDocument()
+  })
+
+  it('conta normal não vê aviso nem botões desligados', async () => {
+    profile.is_demo = false
+    renderProfile()
+    expect(await screen.findByRole('button', { name: 'Salvar dados' })).toBeEnabled()
+    expect(screen.queryByText(LOCK)).not.toBeInTheDocument()
+  })
+})

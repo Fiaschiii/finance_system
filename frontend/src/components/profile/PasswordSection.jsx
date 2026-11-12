@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { useAuth } from '../../hooks/useAuth.jsx'
+import { useProfile } from '../../hooks/useProfile.jsx'
+import DemoLockNotice from '../DemoLockNotice.jsx'
 import { useToast } from '../../hooks/useToast.jsx'
 import { useI18n } from '../../i18n/index.jsx'
 import { translateAuthError } from '../../utils/authErrors.js'
@@ -14,6 +16,7 @@ function PasswordSection() {
   const { t } = useI18n()
   const toast = useToast()
   const { user, updatePassword, reauthenticate } = useAuth()
+  const { isDemo } = useProfile()
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [nonce, setNonce] = useState('')
@@ -55,7 +58,9 @@ function PasswordSection() {
     <div className="settings-section">
       <h2>{t('password.title')}</h2>
       <p>{t('password.intro')}</p>
+      {isDemo && <DemoLockNotice />}
 
+      <fieldset className="plain-fieldset" disabled={isDemo}>
       <form className="profile-form" onSubmit={handleSubmit} noValidate>
         {/* Ajuda o gerenciador de senhas a saber de qual conta é a senha nova. */}
         <input type="text" autoComplete="username" className="visually-hidden" tabIndex={-1} aria-hidden="true" readOnly value={user?.email ?? ''} />
@@ -112,6 +117,7 @@ function PasswordSection() {
           </button>
         </div>
       </form>
+      </fieldset>
     </div>
   )
 }

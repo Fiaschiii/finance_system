@@ -5,6 +5,7 @@ import { useI18n } from '../../i18n/index.jsx'
 import { AVATAR_TYPES, AvatarError, prepareAvatar } from '../../utils/image.js'
 import { formatPhone, looksLikePhone } from '../../utils/phone.js'
 import Avatar from '../Avatar.jsx'
+import DemoLockNotice from '../DemoLockNotice.jsx'
 
 // Minha conta > Dados cadastrais: foto, nome e telefone.
 // O e-mail tem seção própria (EmailSection), porque a troca passa por
@@ -12,7 +13,7 @@ import Avatar from '../Avatar.jsx'
 function PersonalDataSection({ profile, email }) {
   const { t } = useI18n()
   const toast = useToast()
-  const { updateProfile, uploadAvatar, removeAvatar } = useProfile()
+  const { updateProfile, uploadAvatar, removeAvatar, isDemo } = useProfile()
   const fileRef = useRef(null)
 
   const [name, setName] = useState(profile.full_name ?? '')
@@ -78,7 +79,9 @@ function PersonalDataSection({ profile, email }) {
   return (
     <div className="settings-section">
       <h2>{t('personal.title')}</h2>
+      {isDemo && <DemoLockNotice />}
 
+      <fieldset className="plain-fieldset" disabled={isDemo}>
       <div className="avatar-editor">
         <Avatar url={profile.avatar_url} name={profile.full_name || email} size={88} alt={t('avatar.alt')} />
         <div className="avatar-editor__actions">
@@ -144,6 +147,7 @@ function PersonalDataSection({ profile, email }) {
           </button>
         </div>
       </form>
+      </fieldset>
     </div>
   )
 }

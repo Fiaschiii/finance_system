@@ -97,6 +97,9 @@ export function ProfileProvider({ children }) {
       // Da sessão (atualiza na hora ao ativar/desativar), não do perfil.
       mfaEnabled: hasVerifiedFactor(user),
       notifications: notificationsOf(profile),
+      // Conta de demonstração do portfólio: senha, e-mail, MFA, nome,
+      // telefone, foto e sessões ficam travados (o banco também confere).
+      isDemo: profile?.is_demo === true,
     }),
     [profile, loading, error, load, updateProfile, uploadAvatar, removeAvatar, user]
   )
@@ -125,6 +128,7 @@ const fallback = {
   removeAvatar: async () => null,
   mfaEnabled: true,
   notifications: notificationsOf(null),
+  isDemo: false,
 }
 
 export function useProfile() {

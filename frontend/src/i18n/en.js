@@ -240,6 +240,7 @@ export default {
   'settings.newCategory': 'New category',
   'settings.categoriesIntro':
     'Categories organize your expenses and are the basis for budgets. A category that already has expenses cannot be deleted, but it can be renamed.',
+  'demo.locked': 'Demo account: this part is locked so every visitor can keep signing in.',
   'panels.title': 'Summary panels',
   'panels.intro': 'Choose the order of the panels on the Summary and the icon of each one. Changes are saved right away.',
   'panels.restore': 'Restore default',

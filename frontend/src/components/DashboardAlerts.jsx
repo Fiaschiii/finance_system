@@ -27,7 +27,7 @@ export function budgetAlerts(budgets) {
 //   Resumo já mostra o formulário do salário.
 function DashboardAlerts({ budgets, salaryMissing, monthLabel, onInformSalary }) {
   const { t } = useI18n()
-  const { notifications, mfaEnabled } = useProfile()
+  const { notifications, mfaEnabled, isDemo } = useProfile()
 
   const { over, near } = notifications.budget ? budgetAlerts(budgets) : { over: [], near: [] }
   const items = []
@@ -65,7 +65,8 @@ function DashboardAlerts({ budgets, salaryMissing, monthLabel, onInformSalary })
       </p>
     )
   }
-  if (notifications.mfa && !mfaEnabled) {
+  // Na conta de demonstração o MFA fica travado: o lembrete só atrapalharia.
+  if (notifications.mfa && !mfaEnabled && !isDemo) {
     items.push(
       <p key="mfa" className="status status--pending status--with-icon">
         <Icon name="shield" />
