@@ -1,8 +1,10 @@
 # Controle Financeiro Pessoal #
 
-Sistema local de controle financeiro pessoal: cadastro de salário, gastos fixos e variáveis, orçamentos por categoria ("caixinhas") e histórico mensal.
+Sistema de controle financeiro pessoal: cadastro de salário, gastos fixos e variáveis, orçamentos por categoria ("caixinhas") e histórico mensal.
 
 **Stack:** React + Vite · Node.js/Express · Supabase (PostgreSQL + Auth)
+
+Para colocar no ar sem custo (Supabase + Render + Cloudflare Pages), veja [Publicação gratuita](#publicação-gratuita-supabase--render--cloudflare-pages).
 
 ## Arquitetura
 
@@ -10,7 +12,8 @@ Sistema local de controle financeiro pessoal: cadastro de salário, gastos fixos
 controle-financeiro/
 ├── frontend/   React + Vite        → http://localhost:5173
 ├── backend/    Node.js + Express   → http://localhost:3000
-└── database/   Scripts SQL (Supabase)
+├── database/   Scripts SQL (Supabase)
+└── render.yaml Publicação do backend no Render (ver Publicação gratuita)
 ```
 
 ## Pré-requisitos
@@ -215,6 +218,104 @@ O que protege os dados:
 5. **Authentication → Multi-Factor**: confira que **TOTP (App Authenticator)** está habilitado (é o padrão).
 6. **Advisors → Security Advisor**: não deve sobrar nenhum item em vermelho (*Error*) nas tabelas do projeto.
 7. Nunca coloque a chave **secret** (antiga `service_role`) em nenhum `.env` deste projeto. Ela ignora o RLS e o sistema não precisa dela.
+
+## Publicação gratuita (Supabase + Render + Cloudflare Pages)
+
+Como colocar o sistema no ar sem custo, para mostrar no portfólio:
+
+| Parte | Onde | Arquivo de configuração |
+|---|---|---|
+| Banco e login | **Supabase** (o mesmo projeto do desenvolvimento, ou um novo) | `database/migrations/` |
+| Backend (Express) | **Render**, plano Free | [`render.yaml`](render.yaml) |
+| Frontend (React/Vite) | **Cloudflare Pages** | [`frontend/public/_headers`](frontend/public/_headers) |
+
+Os dois serviços publicam de novo sozinhos a cada `git push` na branch `main`.
+
+### Antes de começar
+
+1. O repositório precisa estar no GitHub (pode ser público).
+2. No Supabase, todas as migrações (`0001` a `0006`) precisam ter sido rodadas, e o `database/checks/verificar_seguranca.sql` deve mostrar tudo ✅.
+3. **Escolha o nome do projeto na Cloudflare** (ex.: `controle-financeiro`). O endereço do site será `https://<nome>.pages.dev`, e o backend precisa saber disso desde o início. Se o nome já existir, a Cloudflare acrescenta um sufixo: confira no passo 2 e, se mudou, atualize o `FRONTEND_URL` no Render.
+
+Nos passos abaixo, troque `<nome>` e `<backend>` pelos seus endereços. **Nenhum endereço leva barra no fim.**
+
+### 1. Backend no Render
+
+1. Em [render.com](https://render.com), entre com o GitHub e clique em **New → Blueprint**.
+2. Escolha este repositório. O Render lê o `render.yaml` e mostra o serviço `controle-financeiro-api`.
+3. Preencha os valores pedidos:
+   - `FRONTEND_URL`: `https://<nome>.pages.dev`
+   - `SUPABASE_URL`: a URL do projeto (Supabase → **Settings → API Keys**)
+   - `SUPABASE_PUBLISHABLE_KEY`: a chave **publishable** (`sb_publishable_...`). **Nunca** a secret.
+   - `NODE_ENV=production` e `TRUST_PROXY=1` já vêm preenchidos pelo `render.yaml`.
+4. Clique em **Apply** e espere o primeiro deploy terminar (alguns minutos).
+5. Anote o endereço do serviço (algo como `https://controle-financeiro-api.onrender.com`) e confira:
+   - `https://<backend>/healthz` responde `{"status":"ok"}`;
+   - `https://<backend>/api/health/supabase` responde com `"configured": true` e `"reachable": true`.
+
+### 2. Frontend na Cloudflare Pages
+
+1. No [painel da Cloudflare](https://dash.cloudflare.com), vá em **Workers & Pages → Create → Pages → Connect to Git** e escolha este repositório.
+2. Configure o build:
+   - **Project name**: o `<nome>` escolhido antes
+   - **Production branch**: `main`
+   - **Framework preset**: `None`
+   - **Build command**: `npm run build`
+   - **Build output directory**: `dist`
+   - **Root directory**: `frontend`
+3. Em **Environment variables**, cadastre:
+
+   | Variável | Valor |
+   |---|---|
+   | `NODE_VERSION` | `22` |
+   | `VITE_SUPABASE_URL` | a URL do projeto Supabase |
+   | `VITE_SUPABASE_PUBLISHABLE_KEY` | a chave publishable |
+   | `VITE_API_URL` | `https://<backend>` (o endereço do Render) |
+   | `VITE_TURNSTILE_SITE_KEY` | a *site key* do Turnstile (ou vazio para desligar o CAPTCHA) |
+   | `VITE_IDLE_TIMEOUT_MINUTES` | `15` |
+
+4. Clique em **Save and Deploy**.
+
+As variáveis `VITE_*` entram no site **na hora do build**, inclusive na proteção CSP, que só libera conexões para o Supabase e o `VITE_API_URL` informados. Se mudar alguma depois, é preciso publicar de novo (**Deployments → Retry deployment**). Não há segredo nelas: a chave publishable e a *site key* foram feitas para ficar no navegador.
+
+Páginas como `/history` funcionam ao recarregar: sem um `404.html` no build, a Cloudflare entrega o `index.html` e o React Router cuida do resto. O arquivo `_headers` acrescenta os cabeçalhos de segurança que uma `<meta>` não consegue dar, principalmente o que impede outro site de abrir o sistema dentro de um iframe (*clickjacking*).
+
+### 3. Endereços no Supabase
+
+Em **Authentication → URL Configuration**:
+
+- **Site URL**: `https://<nome>.pages.dev`. É para onde apontam os links dos e-mails de confirmação.
+- **Redirect URLs**: acrescente `https://<nome>.pages.dev/reset-password` e `https://<nome>.pages.dev/profile`. Mantenha os de `localhost` se ainda for desenvolver nesse mesmo projeto.
+
+### 4. Domínio no Turnstile (se o CAPTCHA estiver ligado)
+
+No painel da Cloudflare, **Turnstile → seu widget → Hostname management**: acrescente `<nome>.pages.dev`. Sem isso, o CAPTCHA recusa o site publicado e ninguém consegue entrar.
+
+### 5. E-mails e conta de demonstração
+
+O envio de e-mails embutido no Supabase manda **poucos e-mails por hora para o projeto inteiro**. Se várias pessoas se cadastrarem no mesmo dia, a confirmação de e-mail falha. Há duas saídas, que podem ser usadas juntas:
+
+- **Conta de demonstração (recomendado)**: cadastre uma conta pelo próprio site (ex.: `demo@<seu-dominio>` ou um e-mail seu), confirme o e-mail, lance alguns meses de salário e gastos fictícios e publique o login e a senha no topo deste README. Quem visita entra direto, sem cadastro.
+  - **Não ative** a verificação em duas etapas nessa conta: o visitante não teria o código.
+  - Qualquer visitante pode mudar a senha, o e-mail ou apagar os dados dessa conta. Confira de vez em quando se ela continua funcionando; se alguém trocar a senha, redefina pelo painel do Supabase (**Authentication → Users**).
+- **SMTP próprio**: em **Authentication → Emails → SMTP Settings**, configure um serviço como o [Resend](https://resend.com) (plano gratuito). Para mandar e-mail a qualquer pessoa, ele exige um **domínio próprio** verificado; sem domínio, fique só com a conta de demonstração.
+
+Deixe claro, na tela inicial do portfólio ou no README, que é uma demonstração: **ninguém deve colocar dados financeiros reais ali**.
+
+### 6. Conferência final
+
+- [ ] O site abre em `https://<nome>.pages.dev` e o login com a conta de demonstração funciona.
+- [ ] Recarregar a página em `/history` ou `/settings` não dá erro 404.
+- [ ] No navegador (F12 → **Console**), não aparece erro de **CORS** nem de **Content Security Policy**. Se aparecer, o `FRONTEND_URL` (Render) ou o `VITE_API_URL` (Cloudflare) está diferente do endereço real (confira `https`, sufixo do nome e barra no fim).
+- [ ] "Esqueci minha senha" manda um e-mail cujo link abre o site publicado, não o `localhost`.
+- [ ] Opcional: [securityheaders.com](https://securityheaders.com) com o endereço do site mostra os cabeçalhos do `_headers`.
+- [ ] Coloque o link do site no topo deste README.
+
+### Limitações do plano gratuito
+
+- **Render**: o backend "dorme" depois de 15 minutos sem uso, e a primeira visita depois disso leva de 30 a 60 segundos para responder; as seguintes são normais. Vale um aviso no README ("o primeiro acesso pode demorar até 1 minuto"). Quando ele dorme ou é publicado de novo, os contadores dos limites de requisições (que ficam na memória) recomeçam do zero.
+- **Supabase**: um projeto gratuito sem nenhum uso por 7 dias é **pausado**. Para voltar, clique em **Restore** no painel; os dados continuam lá.
+- **Cloudflare Pages**: sem limitação relevante para este projeto.
 
 ## Progresso das etapas
 
