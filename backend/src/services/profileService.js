@@ -49,6 +49,19 @@ export async function updateProfile(supabase, userId, fields) {
   return data
 }
 
+// Conta de demonstração (migração 0007)? A função do banco responde só sobre
+// quem está logado (auth.uid()), então nenhum id vai daqui.
+// Se a 0007 ainda não foi rodada, a função não existe: aí nenhuma conta é de
+// demonstração (e o resto do perfil continua funcionando).
+export async function isDemoAccount(supabase) {
+  const { data, error } = await supabase.rpc('is_demo_account')
+  if (error) {
+    if (error.code === 'PGRST202') return false
+    throw error
+  }
+  return data === true
+}
+
 // ----------------------------- Foto -----------------------------
 
 // Sempre um nome novo: o link antigo (que pode estar em cache) não mostra a foto nova.

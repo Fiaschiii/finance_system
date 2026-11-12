@@ -24,6 +24,7 @@ vi.mock('../../src/services/profileService.js', async (importOriginal) => {
     listSessions: vi.fn(),
     revokeSession: vi.fn(),
     revokeOtherSessions: vi.fn(),
+    isDemoAccount: vi.fn(),
   }
 })
 
@@ -58,6 +59,7 @@ beforeEach(() => {
   profileService.updateProfile.mockImplementation(async (_s, _id, fields) => ({ ...PROFILE, ...fields }))
   profileService.signAvatarUrl.mockImplementation(async (_s, _id, path) => (path ? `https://assinado/${path}` : null))
   profileService.uploadAvatar.mockResolvedValue(`${USER.id}/nova.jpg`)
+  profileService.isDemoAccount.mockResolvedValue(false)
 })
 
 describe('GET /api/profile', () => {
@@ -355,5 +357,77 @@ describe('idioma das mensagens (Accept-Language)', () => {
   it('sem cabeçalho (ou pt-BR): continua em português', async () => {
     const res = await request(app).put('/api/profile').set(AUTH).send({ theme: 'roxo' })
     expect(res.body.error).toBe('Tema inválido: use "auto", "light", "dark".')
+  })
+})
+
+// Conta de demonstração do portfólio: todo visitante entra com ela. O que
+// poderia trancar os outros ou expor algo ofensivo é recusado (403).
+describe('conta de demonstração', () => {
+  beforeEach(() => {
+    profileService.isDemoAccount.mockResolvedValue(true)
+  })
+
+  function expectDemoLocked(res) {
+    expect(res.status).toBe(403)
+    expect(res.body).toEqual({ error: 'Indisponível na conta de demonstração.', code: 'demo_locked' })
+  }
+
+  it('o perfil avisa a tela que a conta é de demonstração', async () => {
+    const res = await request(app).get('/api/profile').set(AUTH)
+    expect(res.body.profile.is_demo).toBe(true)
+  })
+
+  it('conta normal: is_demo false', async () => {
+    profileService.isDemoAccount.mockResolvedValue(false)
+    const res = await request(app).get('/api/profile').set(AUTH)
+    expect(res.body.profile.is_demo).toBe(false)
+  })
+
+  it.each([{ full_name: 'Ofensivo' }, { phone: '(11) 91234-5678' }, { full_name: 'X', theme: 'dark' }])(
+    'não muda nome nem telefone: %j',
+    async (body) => {
+      expectDemoLocked(await request(app).put('/api/profile').set(AUTH).send(body))
+      expect(profileService.updateProfile).not.toHaveBeenCalled()
+    }
+  )
+
+  it('preferências e painéis continuam livres', async () => {
+    const res = await request(app).put('/api/profile').set(AUTH).send({ theme: 'dark', language: 'en', notify_budget_alerts: false })
+    expect(res.status).toBe(200)
+    expect(profileService.updateProfile).toHaveBeenCalled()
+  })
+
+  it('não envia foto (nem chega ao Storage)', async () => {
+    expectDemoLocked(await request(app).put('/api/profile/avatar').set(AUTH).set('Content-Type', 'image/jpeg').send(JPEG))
+    expect(profileService.uploadAvatar).not.toHaveBeenCalled()
+  })
+
+  it('não remove foto', async () => {
+    expectDemoLocked(await request(app).delete('/api/profile/avatar').set(AUTH))
+    expect(profileService.updateProfile).not.toHaveBeenCalled()
+    expect(profileService.removeAvatarFile).not.toHaveBeenCalled()
+  })
+
+  it('não encerra a sessão de outro visitante nem "todas as outras"', async () => {
+    expectDemoLocked(await request(app).delete(`/api/profile/sessions/${OTHER_SESSION_ID}`).set(SESSION_AUTH))
+    expectDemoLocked(await request(app).delete('/api/profile/sessions').set(SESSION_AUTH))
+    expect(profileService.revokeSession).not.toHaveBeenCalled()
+    expect(profileService.revokeOtherSessions).not.toHaveBeenCalled()
+  })
+
+  it('ver as sessões continua permitido', async () => {
+    profileService.listSessions.mockResolvedValue([])
+    expect((await request(app).get('/api/profile/sessions').set(SESSION_AUTH)).status).toBe(200)
+  })
+
+  it('se a trava do BANCO recusar algo, a resposta é 403 com a mesma mensagem (não 500)', async () => {
+    profileService.isDemoAccount.mockResolvedValue(false)
+    profileService.updateProfile.mockRejectedValue(Object.assign(new Error('demo_account_locked'), { code: '42501' }))
+    expectDemoLocked(await request(app).put('/api/profile').set(AUTH).send({ full_name: 'X' }))
+  })
+
+  it('em inglês', async () => {
+    const res = await request(app).put('/api/profile').set(AUTH).set('Accept-Language', 'en').send({ full_name: 'X' })
+    expect(res.body.error).toBe('Not available on the demo account.')
   })
 })

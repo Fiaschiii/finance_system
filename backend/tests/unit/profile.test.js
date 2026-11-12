@@ -79,6 +79,22 @@ describe('profileService', () => {
     expect(queries[0].calls[0][1]).toEqual({ theme: 'dark', id: USER.id })
   })
 
+  it('isDemoAccount pergunta ao banco sem mandar id (o banco usa o do token)', async () => {
+    const { client, queries } = fakeSupabase({ data: true, error: null })
+    expect(await profileService.isDemoAccount(client)).toBe(true)
+    expect(queries[0]).toEqual({ rpc: 'is_demo_account', args: undefined })
+  })
+
+  it('isDemoAccount: sem a migração 0007 (função inexistente), nenhuma conta é de demonstração', async () => {
+    const { client } = fakeSupabase({ data: null, error: { code: 'PGRST202', message: 'not found' } })
+    expect(await profileService.isDemoAccount(client)).toBe(false)
+  })
+
+  it('isDemoAccount: outro erro do banco não é engolido', async () => {
+    const { client } = fakeSupabase({ data: null, error: { code: '500', message: 'falhou' } })
+    await expect(profileService.isDemoAccount(client)).rejects.toMatchObject({ message: 'falhou' })
+  })
+
   it('uploadAvatar usa a pasta do usuário e um nome novo a cada envio', async () => {
     const { client, queries } = fakeSupabase({ error: null }, { error: null })
     const image = { buffer: Buffer.from('x'), contentType: 'image/jpeg', extension: 'jpg' }
