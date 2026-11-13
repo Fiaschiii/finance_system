@@ -249,7 +249,7 @@ Nos passos abaixo, troque `<nome>` e `<backend>` pelos seus endereços. **Nenhum
    - `FRONTEND_URL`: `https://<nome>.pages.dev`
    - `SUPABASE_URL`: a URL do projeto (Supabase → **Settings → API Keys**)
    - `SUPABASE_PUBLISHABLE_KEY`: a chave **publishable** (`sb_publishable_...`). **Nunca** a secret.
-   - `NODE_ENV=production` e `TRUST_PROXY=1` já vêm preenchidos pelo `render.yaml`.
+   - `NODE_ENV=production`, `NODE_VERSION=22` e `TRUST_PROXY=1` já vêm preenchidos pelo `render.yaml`.
 4. Clique em **Apply** e espere o primeiro deploy terminar (alguns minutos).
 5. Anote o endereço do serviço (algo como `https://controle-financeiro-api.onrender.com`) e confira:
    - `https://<backend>/healthz` responde `{"status":"ok"}`;

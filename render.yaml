@@ -22,6 +22,10 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      # Versão do Node (LTS). Sem isso, o Render lê o "engines" (>=22.12) do
+      # package.json e pode escolher a versão mais nova, que talvez não seja LTS.
+      - key: NODE_VERSION
+        value: "22"
       # O Render fica na frente do backend como proxy: sem isso, todos os
       # visitantes teriam o mesmo IP e dividiriam o mesmo limite.
       - key: TRUST_PROXY
